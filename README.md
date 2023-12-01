@@ -2,7 +2,7 @@
 
 # Introduction  
 
-This code was used for studying the ** Dopamine neurons encode a multidimensional probabilistic map of future reward.**
+This code was used for studying the **Dopamine neurons encode a multidimensional probabilistic map of future reward.**
 
 # Usage
 
