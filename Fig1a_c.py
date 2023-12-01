@@ -1,3 +1,5 @@
+import time as timer
+start_time = timer.time()
 import numpy as np
 import matplotlib.pyplot as plt
 import matplotlib as mpl
@@ -7,6 +9,9 @@ import math
 import itertools
 from mpl_toolkits.axes_grid1 import make_axes_locatable
 import cmasher as cmr
+
+
+
 
 
 # Parameters for plots
@@ -177,3 +182,5 @@ plt.yticks([])
 #plt.colorbar(im,cax=cax,ticks=[],label="Value at cue")#r"$V$"+"(cue)"
 #fig.savefig(save_dir+r"/heat_map_value_time_amount.svg")
 plt.show()
+
+print("time elapsed: {:.2f}s".format(timer.time() - start_time))

@@ -1,3 +1,5 @@
+import time as timer
+start_time = timer.time()
 import pdb
 import numpy as np
 import matplotlib.pyplot as plt
@@ -164,5 +166,5 @@ ax[1].set_xticks([0,3,6],["0","3","6"])
 #plt.savefig(save_dir+"\efficient_coding_conditions.svg")
 
 plt.show()
-
+print("time elapsed: {:.2f}s".format(timer.time() - start_time))
 

@@ -1,3 +1,5 @@
+import time as timer
+start_time = timer.time()
 import matplotlib as mpl
 from aux_functions import *
 import matplotlib.pyplot as plt
@@ -99,3 +101,5 @@ ax.set_yticks([])
 #fig.tight_layout()
 #plt.savefig(save_dir+"\simulations_heat_map.eps", bbox_inches=0)
 plt.show()
+
+print("time elapsed: {:.2f}s".format(timer.time() - start_time))

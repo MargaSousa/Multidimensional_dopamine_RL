@@ -1,3 +1,5 @@
+import time as timer
+start_time = timer.time()
 from scipy.stats import gaussian_kde
 from aux_functions import *
 import matplotlib.pyplot as plt
@@ -110,3 +112,6 @@ np.save("amount_pdf.npy",x_pdf)
 np.save("pdf_ss.npy",y_ss)
 np.save("pdf_ll.npy",y_ll)
 np.save("pdf_variable.npy",y_variable)
+
+
+print("time elapsed: {:.2f}s".format(timer.time() - start_time))

@@ -1,3 +1,5 @@
+import time as timer
+start_time = timer.time()
 import pdb
 import numpy as np
 import matplotlib.pyplot as plt
@@ -74,3 +76,5 @@ plt.xticks([])
 plt.yticks([])
 plt.savefig("Value_cue_reward.svg")
 plt.show()
+
+print("time elapsed: {:.2f}s".format(timer.time() - start_time))
