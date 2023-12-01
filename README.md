@@ -10,5 +10,5 @@ This code was developed for python 3. All required packages are in the _requirem
 
 To produce Figure 1, Figure 6, Extended data Figure 10 and Extended data Figure 11, please run the respective scripts. 
 
-All scripts run in less than 10 seconds on a MacBook Pro M2 with 8GB of RAM.
+All scripts run in less than 10 seconds on a MacBook Pro M2 with 8GB of RAM (macOS 13.0).
 
