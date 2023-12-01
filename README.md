@@ -6,7 +6,7 @@ This code was used for studying the **Dopamine neurons encode a multidimensional
 
 # Usage
 
-This code was developed for python 3. All required packages are in the _requirements.txt_ file. 
+This code was developed in Python 3. All required packages are in the _requirements.txt_ file. 
 
 To produce Figure 1, Figure 6, Extended data Figure 10 and Extended data Figure 11, please run the respective scripts. 
 
