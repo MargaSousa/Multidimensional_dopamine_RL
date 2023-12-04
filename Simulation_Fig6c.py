@@ -1,3 +1,5 @@
+import time as timer
+start_time = timer.time()
 import pdb
 import numpy as np
 import matplotlib.pyplot as plt
@@ -82,7 +84,7 @@ plt.show()
 
 # Simulate Planning example
 
-n_actions=2
+n_actions=2 # patches 1 and 2
 temperature_policy=0.2
 reward=np.zeros((n_actions,12))
 
@@ -92,9 +94,7 @@ reward[0,init_time_reward[0]:end_time_reward[0]]=reward_amount[0]
 # Patch 2
 reward[1,init_time_reward[1]:end_time_reward[1]]=reward_amount[1]
 
-epoch_training="init" # "init" or "end"
-
-# define time range for "init" and "end" epoch in training
+epoch_training="end" # define time range for "init" and "end" epoch in training
 if epoch_training=="end":
     T=30000
 else:
@@ -195,5 +195,5 @@ np.save("mice_runs_dist_rl_"+epoch_training+".npy",all_runs_dist_rl)
 np.save("mice_runs_value_"+epoch_training+".npy",all_runs_value)
 np.save("mice_runs_sr_"+epoch_training+".npy",all_runs_value)
 
-
+print("time elapsed: {:.2f}s".format(timer.time() - start_time))
 pdb.set_trace()
