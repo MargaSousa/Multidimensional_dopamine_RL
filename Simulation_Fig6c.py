@@ -1,3 +1,4 @@
+import pdb
 import time as timer
 
 start_time = timer.time()
@@ -63,16 +64,16 @@ def do_action(action, values, gammas, sum_reward):
     return values, sum_reward
 
 
-def do_action_sr(action, sr, est_reward, gamma, sum_reward):
+def do_action_sr(action, sr, gamma, sum_reward):
     """ Exectute an action, and update occupancy matrix and cumulative rewards."""
-    sr[action] += alpha * (1 - sr[action])
-    sum_reward_trial = 0
     for t_action in range(end_time_reward[action]):
         rew = np.random.choice(a=reward[action, t_action, :], p=probability[action, t_action, :])
-        sum_reward_trial += rew
-    sum_reward += sum_reward_trial
-    est_reward[action] += alpha * (sum_reward_trial - est_reward[action])
-    return sr, est_reward, sum_reward
+        if t_action < end_time_reward[action] - 1:
+            sr[action, t_action] += alpha * (1 + gamma * sr[action, t_action + 1] - sr[action, t_action])
+        else:
+            sr[action, t_action] += alpha * (1 - sr[action, t_action])
+        sum_reward += rew
+    return sr, sum_reward
 
 
 # Simulate Planning example
@@ -84,13 +85,13 @@ time_disc = np.arange(0, 12, scale_time)
 N_time = len(time_disc)
 
 # Stationary environment (Figure 6c left)
-environment_name="stationary"
-n_actions=2 # number of patches
-reward_magnitude=np.array([[0,1],[0,2]])
-n_magnitudes=reward_magnitude.shape[1]
-probability_magnitude=np.array([[0,1],[0,1]])
-init_time_reward=[0,0]
-end_time_reward=[N_time,N_time]
+environment_name = "stationary"
+n_actions = 2  # number of patches
+reward_magnitude = np.array([[0, 1], [0, 2]])
+n_magnitudes = reward_magnitude.shape[1]
+probability_magnitude = np.array([[0, 1], [0, 1]])
+init_time_reward = [0, 0]
+end_time_reward = [N_time, N_time]
 
 # Non-stationary environment (Figure 6c right)
 # environment_name = "non-stationary"
@@ -156,13 +157,13 @@ for r in range(n_runs):
     sum_reward_sr = 0
     t = 0
     past_early = False
-    sr = np.ones(n_actions)
-    est_reward = np.zeros(n_actions)
+    sr = np.ones((n_actions, N_time)) * 0.25
     while t < T:
-        value = sr * est_reward
+        expected_value_reward = np.sum(reward * probability, axis=2)
+        value = np.sum(sr * expected_value_reward, axis=1)
         _, action = get_action(value, temperature_policy)
         t += end_time_reward[action]
-        sr, est_reward, sum_reward_sr = do_action_sr(action, sr, est_reward, gamma, sum_reward_sr)
+        sr, sum_reward_sr = do_action_sr(action, sr, gamma, sum_reward_sr)
         if not past_early and t > T_early:
             all_runs_sr_early.append(sum_reward_sr)
             past_early = True
@@ -209,6 +210,11 @@ for r in range(n_runs):
             past_early = True
     all_runs_dist_rl_late.append(sum_reward)
 
+print(all_runs_sr_late)
+print(all_runs_value_late)
+print(all_runs_dist_rl_late)
+
+pdb.set_trace()
 
 np.save("foraging_runs_dist_rl_early_" + environment_name + ".npy", all_runs_dist_rl_early)
 np.save("foraging_runs_dist_rl_late_" + environment_name + ".npy", all_runs_dist_rl_late)
