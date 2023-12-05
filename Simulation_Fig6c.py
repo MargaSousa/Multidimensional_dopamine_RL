@@ -153,14 +153,14 @@ temperature_policy = 0.1
 all_runs_sr_early = []
 all_runs_sr_late = []
 n_runs = 10
-cum_expected_value_reward = np.sum(reward * probability, axis=(1, 2))
+cum_expected_value_reward = np.sum(reward * probability, axis=2)
 for r in range(n_runs):
     sum_reward_sr = 0
     t = 0
     past_early = False
     sr = np.ones((n_actions, N_time)) * 0.25
     while t < T:
-        value = sr[:,0] * cum_expected_value_reward
+        value = np.sum(sr * cum_expected_value_reward,axis=1)
         _, action = get_action(value, temperature_policy)
         t += end_time_reward[action]
         sr, sum_reward_sr = do_action_sr(action, sr, gamma, sum_reward_sr)
@@ -210,11 +210,6 @@ for r in range(n_runs):
             past_early = True
     all_runs_dist_rl_late.append(sum_reward)
 
-print(all_runs_sr_late)
-print(all_runs_value_late)
-print(all_runs_dist_rl_late)
-
-pdb.set_trace()
 
 np.save("foraging_runs_dist_rl_early_" + environment_name + ".npy", all_runs_dist_rl_early)
 np.save("foraging_runs_dist_rl_late_" + environment_name + ".npy", all_runs_dist_rl_late)
