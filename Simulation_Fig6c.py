@@ -153,14 +153,14 @@ temperature_policy = 0.1
 all_runs_sr_early = []
 all_runs_sr_late = []
 n_runs = 10
+cum_expected_value_reward = np.sum(reward * probability, axis=(1, 2))
 for r in range(n_runs):
     sum_reward_sr = 0
     t = 0
     past_early = False
     sr = np.ones((n_actions, N_time)) * 0.25
     while t < T:
-        expected_value_reward = np.sum(reward * probability, axis=2)
-        value = np.sum(sr * expected_value_reward, axis=1)
+        value = sr[:,0] * cum_expected_value_reward
         _, action = get_action(value, temperature_policy)
         t += end_time_reward[action]
         sr, sum_reward_sr = do_action_sr(action, sr, gamma, sum_reward_sr)
