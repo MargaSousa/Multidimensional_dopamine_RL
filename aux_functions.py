@@ -227,3 +227,5 @@ def plot_dendrogram(model,**kwargs):
     #dendrogram(linkage_matrix,above_threshold_color='black',**kwargs)
     dend=dendrogram(linkage_matrix,above_threshold_color='black',**kwargs)
     return dend
+
+
