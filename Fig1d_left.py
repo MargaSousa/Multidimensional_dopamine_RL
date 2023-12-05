@@ -33,7 +33,7 @@ asym_cmap = mcol.LinearSegmentedColormap.from_list("MyCmapName", [reward_cmap[1]
 n_states = 5
 n_unique = 10
 
-n_trials = 900
+n_trials = 50000
 unique_taus = np.random.uniform(1.0 / n_unique, 1.0 - 1.0 / n_unique, n_unique)  #
 unique_gammas = np.linspace(0.6, 0.999, n_unique)[::-1]
 mesh = np.meshgrid(unique_taus, unique_gammas)
@@ -63,20 +63,18 @@ for trial in range(n_trials):
         else:
             reward = 0
 
-            ## 1: A possible way to perform imputation
-            # sample_future_neurons_clean=np.random.choice(Value[:,n_states-1],size=n_neurons)*(gammas**(n_states-time-1))
-
-            ## 2: Another way of implementing it
-            sample_future = np.random.choice(Value[:, time + 1] / (gammas ** (n_states - time - 1)), size=n_neurons)
-            sample_future_neurons = sample_future * gammas ** (n_states - time - 1)
+            ## A possible way to implement imputation
+            sample_future = np.random.choice(np.round(Value[:, time + 1] / ((gammas) ** (n_states - time - 1)), 20),
+                                             size=n_neurons)
+            sample_future_neurons = np.round(sample_future * (gammas) ** (n_states - time - 1), 20)
 
             imputation = reward + gammas * sample_future_neurons
-        error = imputation - Value[:, time]
 
+        error = imputation - Value[:, time]
         Value[:, time] += alpha * (taus * error * (error > 0) + (1 - taus) * error * (error < 0))
 
-    if trial % 1000 == 0:
-        alpha = alpha * 0.5
+    if trial % 10000 == 0:
+        alpha = alpha * 0.9
 plt.imshow(Value, aspect="auto")
 plt.ylabel("Neurons")
 plt.xlabel("Time")
