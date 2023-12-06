@@ -1,6 +1,4 @@
-import pdb
 import time as timer
-
 start_time = timer.time()
 import numpy as np
 import matplotlib as mpl
@@ -35,10 +33,13 @@ def predict_time_reward(Value, smooth):
     return time_disc[pos_max], p
 
 
-def get_action(value, temperature_policy):
+def get_action(value, t):
     """Output the softmax policy over value with temperature parameter temperature_policy."""
     value[value > 3429] = 3429  # So it doesn't overflow
-    policy = np.round(np.exp(temperature_policy * value), 10)
+    if t < T * 0.3:
+        policy = np.exp(temperature_policy_init * value)  # To guarantee the agent explores
+    else:
+        policy = np.exp(temperature_policy * value)
     policy = policy / np.sum(policy)
     selected_action = np.random.choice(policy.shape[0], size=1, p=policy)[0]
     return policy, selected_action
@@ -64,16 +65,19 @@ def do_action(action, values, gammas, sum_reward):
     return values, sum_reward
 
 
-def do_action_sr(action, sr, gamma, sum_reward):
-    """ Exectute an action, and update occupancy matrix and cumulative rewards."""
+def do_action_sr(action, sr, expected_reward, gamma, sum_reward):
+    """ Exectute an action, and update occupancy matrix and average estimate of reward for each state."""
     for t_action in range(end_time_reward[action]):
         rew = np.random.choice(a=reward[action, t_action, :], p=probability[action, t_action, :])
+        I = np.zeros(N_time)
+        I[t_action] = 1
         if t_action < end_time_reward[action] - 1:
-            sr[action, t_action] += alpha * (1 + gamma * sr[action, t_action + 1] - sr[action, t_action])
+            sr[action, t_action, :] += alpha * (I + gamma * sr[action, t_action + 1, :] - sr[action, t_action, :])
         else:
-            sr[action, t_action] += alpha * (1 - sr[action, t_action])
+            sr[action, t_action, :] += alpha * (I - sr[action, t_action, :])
         sum_reward += rew
-    return sr, sum_reward
+        expected_reward[action, t_action] += alpha * (rew - expected_reward[action, t_action])
+    return sr, expected_reward, sum_reward
 
 
 # Simulate Planning example
@@ -114,7 +118,8 @@ for patch in range(n_actions):
     probability[patch, :init_time_reward[patch], :] = [1, 0]
     probability[patch, end_time_reward[patch]:, :] = [1, 0]
 
-temperature_policy = 0.2  # temperature parameter for softmax
+temperature_policy_init = 0.0  # initial temperature parameter for softmax
+temperature_policy = 0.3
 n_neurons = 200
 gammas = np.linspace(1.0 / n_neurons, 1, n_neurons)
 
@@ -125,9 +130,9 @@ for i_t, t in enumerate(time_disc):
 U, s, vh = np.linalg.svd(F, full_matrices=False)
 L = np.shape(U)[1]
 
-T_early = 1000
-T = 30000
-alpha = 0.1  # Learning rate
+T_early = 20000
+T = 50000
+alpha = 0.2  # Learning rate
 gamma = 0.99  # Reference temporal discount factor
 n_runs = 10  # Number of runs
 
@@ -140,7 +145,7 @@ for r in range(n_runs):
     past_early = False
     value = np.zeros((n_actions, N_time))  # Initialize value for each option
     while t < T:
-        _, action = get_action(value[:, 0], temperature_policy)
+        _, action = get_action(value[:, 0], t)
         t += end_time_reward[action]
         value, sum_reward_value = do_action(action, value, gamma, sum_reward_value)
         if not past_early and t > T_early:
@@ -149,28 +154,27 @@ for r in range(n_runs):
     all_runs_value_late.append(sum_reward_value)
 
 # SR
-temperature_policy = 0.1
 all_runs_sr_early = []
 all_runs_sr_late = []
 n_runs = 10
-cum_expected_value_reward = np.sum(reward * probability, axis=2)
 for r in range(n_runs):
     sum_reward_sr = 0
     t = 0
     past_early = False
-    sr = np.ones((n_actions, N_time)) * 0.25
+    sr = np.zeros((n_actions, N_time, N_time))  # matrix M(chosen patch, state t)
+    expected_reward = np.zeros((n_actions, N_time))  # average estimate of reward function
     while t < T:
-        value = np.sum(sr * cum_expected_value_reward,axis=1)
-        _, action = get_action(value, temperature_policy)
+        value = np.sum(sr[:, 0, :] * expected_reward[:, :], axis=1)
+        _, action = get_action(value, t)
         t += end_time_reward[action]
-        sr, sum_reward_sr = do_action_sr(action, sr, gamma, sum_reward_sr)
+        sr, expected_reward, sum_reward_sr = do_action_sr(action, sr, expected_reward, gamma, sum_reward_sr)
         if not past_early and t > T_early:
             all_runs_sr_early.append(sum_reward_sr)
             past_early = True
     all_runs_sr_late.append(sum_reward_sr)
 
 
-def predicted_time_all_actions(values, smooth):
+def predicted_time_all_actions(values, smooth, t):
     for action in range(n_actions):
         predicted_time[action], prob = predict_time_reward(values[action, :, 0], smooth)
     return predicted_time
@@ -188,11 +192,11 @@ for r in range(n_runs):
     past_early = False
     values = np.zeros((n_actions, n_neurons, N_time))
     while t < T:
-        predicted_time = predicted_time_all_actions(values, 25)
+        predicted_time = predicted_time_all_actions(values, 25, t)
         earlier_patches = np.intersect1d(np.where(predicted_time < predicted_time[-1])[0],
                                          np.where(values[:, reference_gamma, 0] > 0))
         if len(earlier_patches) > 0:
-            _, action = get_action(values[earlier_patches, reference_gamma, 0], temperature_policy)
+            _, action = get_action(values[earlier_patches, reference_gamma, 0], t)
             # Go to earlier patched and then to later
             values, sum_reward = do_action(action, values, gammas, sum_reward)
             if end_time_reward[action] < end_time_reward[-1]:
@@ -202,14 +206,13 @@ for r in range(n_runs):
                 t += end_time_reward[action]
 
         else:
-            _, action = get_action(values[:, reference_gamma, 0], temperature_policy)
+            _, action = get_action(values[:, reference_gamma, 0], t)
             values, sum_reward = do_action(action, values, gammas, sum_reward)
             t += end_time_reward[action]
         if not past_early and t > T_early:
             all_runs_dist_rl_early.append(sum_reward)
             past_early = True
     all_runs_dist_rl_late.append(sum_reward)
-
 
 np.save("foraging_runs_dist_rl_early_" + environment_name + ".npy", all_runs_dist_rl_early)
 np.save("foraging_runs_dist_rl_late_" + environment_name + ".npy", all_runs_dist_rl_late)
