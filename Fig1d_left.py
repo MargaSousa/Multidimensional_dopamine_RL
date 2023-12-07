@@ -1,5 +1,4 @@
 import time as timer
-
 start_time = timer.time()
 import numpy as np
 import matplotlib.pyplot as plt

@@ -1,5 +1,4 @@
 import time as timer
-
 start_time = timer.time()
 from scipy.stats import gaussian_kde
 from aux_functions import *
