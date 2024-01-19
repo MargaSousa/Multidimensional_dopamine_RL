@@ -24,9 +24,6 @@ vertical_size = 1.5
 # Optimism colors (from Dabney et al, 2020)
 flatui = ["#9B59B6", "#3498DB", "#95A5A6", "#E74C3C", "#34495E", "#2ECC71"]
 reward_cmap = plt.cm.jet(np.linspace(0., 1., 8)[:-1])
-animal_cmap = sns.color_palette(flatui)
-raster_cmap = plt.cm.bone_r
-asym_cmap = plt.cm.autumn_r
 asym_cmap = mcol.LinearSegmentedColormap.from_list("MyCmapName", [reward_cmap[1], reward_cmap[-1]])
 
 n_states = 5

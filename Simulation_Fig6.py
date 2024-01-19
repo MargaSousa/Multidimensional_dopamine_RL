@@ -27,7 +27,7 @@ scale_time = 0.25
 time = np.arange(0, 12, scale_time)
 N_time = len(time)
 gamma_hungry = 0.6
-environment_name = "hungry-sated"  # "hungry-sated" # "hungry-sated" (Figure 6e), "stationary" (Figure 6c left), "non-stationary" (Figure 6c right)
+environment_name = "hungry-sated"  # "hungry-sated" (Figure 6e), "stationary" (Figure 6c left), "non-stationary" (Figure 6c right)
 dict_environment = np.load(environment_name + "-environment.npy", allow_pickle=True)
 dict_environment = dict_environment.item()
 n_actions = dict_environment["n_actions"]  # number of patches
@@ -141,7 +141,7 @@ for r in range(n_runs):
     t = 0
     past_early = False
 
-    # For the hungry case
+    # For the hungry-sated case
     if environment_name == "hungry-sated":
         values = initalize_hungry_state_values(gammas, values, time, reward, probability)
         predicted_times, probability_time = predict_time_all_actions(values, time, U, s, vh, 25)
@@ -156,7 +156,7 @@ for r in range(n_runs):
             _, action = get_action(values[earlier_patches, reference_gamma, 0], t, temperature_policy_init,
                                    temperature_policy, T)
 
-            # Go to earlier patched and then to later
+            # Go to earlier patches and then to later
             values, sum_reward = do_action(action, values, gammas, sum_reward, end_time_reward, reward, probability,
                                            alpha)
             if end_time_reward[action] < end_time_reward[-1]:
