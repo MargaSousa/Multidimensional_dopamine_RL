@@ -1,73 +1,83 @@
-import matplotlib.pyplot as plt
-import numpy as np
+from aux_functions import *
 
 
-def get_action(value, t, temperature_policy_init, temperature_policy, T):
+def get_action(value,  temperature_policy):
     """Output the softmax policy over value with temperature parameter temperature_policy."""
-    value[value > 3429] = 3429  # So it doesn't overflow
-    if t < T * 0.1:
-        policy = np.exp(temperature_policy_init * value)  # To guarantee the agent explores
-    else:
-        policy = np.exp(temperature_policy * value)
+    policy = np.exp(temperature_policy * value)
     policy = policy / np.sum(policy)
     selected_action = np.random.choice(policy.shape[0], size=1, p=policy)[0]
     return policy, selected_action
 
 
-def do_action(action, values, gammas, sum_reward, end_time_reward, reward, probability, alpha):
+def do_action(action, values, gammas, end_time_reward, reward, probability, alpha, scale_time):
     """ Exectute an action, and update values and cumulative rewards."""
+    reward_trial=0
     for t_action in range(end_time_reward[action]):
         rew = np.random.choice(a=reward[action, t_action, :], p=probability[action, t_action, :])
         if t_action < end_time_reward[action] - 1:
             if isinstance(gammas, np.ndarray):
-                values[action, :, t_action] += alpha * (
-                        rew + gammas * values[action, :, t_action + 1] - values[action, :, t_action])
+                values[action, :, t_action] += alpha * ( rew + (gammas**scale_time) * values[action, :, t_action + 1] - values[action, :, t_action])
             else:
-                values[action, t_action] += alpha * (
-                        rew + gammas * values[action, t_action + 1] - values[action, t_action])
+                values[action, t_action] += alpha * (rew + (gammas**scale_time) * values[action, t_action + 1] - values[action, t_action])
         else:
             if isinstance(gammas, np.ndarray):
                 values[action, :, t_action] += alpha * (rew - values[action, :, t_action])
             else:
                 values[action, t_action] += alpha * (rew - values[action, t_action])
-        sum_reward += rew
-    return values, sum_reward
+
+        reward_trial += rew*gammas**(scale_time*t_action)
+
+    return values, reward_trial
 
 
-def do_action_sr(action, sr, expected_reward, gamma, sum_reward, end_time_reward, reward, probability, alpha):
+
+def do_action_TMRL(action, Value, gammas,taus, end_time_reward, reward, probability, alpha, scale_time, batch_size,gamma,is_discounted):
+    """ Exectute an action, and update values and cumulative rewards."""
+    reward_trial=0
+
+    for t_action in range(end_time_reward[action]):
+        print(reward[action, t_action, :],probability[action, t_action, :])
+        rew = np.random.choice(a=reward[action, t_action, :],p=probability[action, t_action, :])
+        if t_action < end_time_reward[action] - 1:
+
+            # Next time-step value resorted
+            #sorted_value=np.reshape(Value[action,:,t_action+1],(n_unique,n_unique))
+
+            ## A possible way to implement imputation
+            #future_samples=np.apply_along_axis(np.random.choice, axis=1, arr=sorted_value, size=50)
+            #future_samples=np.nanmean(future_samples, axis=1).reshape(-1,1)
+            #future_samples=np.repeat(future_samples,n_unique,axis=1)
+            #future_samples.flatten()
+
+            # Batch size x number of values
+            imputation = rew + (gammas**scale_time)*Value[action,:,t_action+1]
+        else:
+            imputation = rew
+
+        error = imputation - Value[action,:, t_action]
+        Value[action,:, t_action] += alpha * (taus * error * (error > 0) + (1 - taus) * error * (error < 0))
+
+        if is_discounted:
+            reward_trial += rew*gamma**(scale_time*t_action)
+        else:
+            reward_trial+=rew
+    return Value, reward_trial
+
+def do_action_sr(action, sr, expected_reward, gamma,end_time_reward, reward, probability, alpha, scale_time):
     """ Exectute an action, and update occupancy matrix and average estimate of reward for each state."""
     N_time = sr.shape[1]
+    reward_episode=0
     for t_action in range(end_time_reward[action]):
         rew = np.random.choice(a=reward[action, t_action, :], p=probability[action, t_action, :])
         I = np.zeros(N_time)
         I[t_action] = 1
         if t_action < end_time_reward[action] - 1:
-            sr[action, t_action, :] += alpha * (I + gamma * sr[action, t_action + 1, :] - sr[action, t_action, :])
+            sr[action, t_action, :] += alpha * (I + (gamma**scale_time) * sr[action, t_action + 1, :] - sr[action, t_action, :])
         else:
             sr[action, t_action, :] += alpha * (I - sr[action, t_action, :])
-        sum_reward += rew
+        reward_episode += rew*gamma**(scale_time*t_action)
         expected_reward[action, t_action] += alpha * (rew - expected_reward[action, t_action])
-    return sr, expected_reward, sum_reward
-
-
-def initalize_hungry_state_value(value, gamma, time, reward, probability):
-    """ Initialize value for a hungry state."""
-    n_actions = value.shape[0]
-    for action in range(n_actions):
-        expected_rewards = np.sum((reward[action, :, :] ** 4) * probability[action, :, :],
-                                  axis=1)  # convex utility function
-        for i_t, t in enumerate(time):
-            value[action, i_t] = np.sum(expected_rewards[i_t:] * gamma ** (time)[i_t:])
-    return value
-
-
-def initalize_hungry_state_sr(sr, gamma, time):
-    """ Initialize sr for a hungry state."""
-    n_actions = sr.shape[0]
-    for action in range(n_actions):
-        for i_t, t in enumerate(time):
-            sr[action, i_t, i_t:] = gamma ** (time - t)[i_t:]
-    return sr
+    return sr, expected_reward, reward_episode
 
 
 def predict_time_reward(Value, time, U, s, vh, smooth):
@@ -87,30 +97,5 @@ def predict_time_all_actions(values, time, U, s, vh, smooth):
     predicted_time = np.zeros(n_actions)
     probability_time = np.zeros((n_actions, N_time))
     for action in range(n_actions):
-        predicted_time[action], probability_time[action, :] = predict_time_reward(values[action, :, 0], time, U, s, vh,
-                                                                                  smooth)
+        predicted_time[action], probability_time[action, :] = predict_time_reward(values[action, :, 0], time, U, s, vh, smooth)
     return predicted_time, probability_time
-
-
-def initalize_hungry_state_values(gammas, values, time, reward, probability):
-    """ Predict reward time probability and recompute value for each patch."""
-    n_actions = values.shape[0]
-    # Predict reward time
-    for action in range(n_actions):
-        expected_rewards = np.sum((reward[action, :, :] ** 4) * probability[action, :, :],
-                                  axis=1)  # convex utility function
-        for i_t, t in enumerate(time):
-            for i_neuron, gamma_neuron in enumerate(gammas):
-                values[action, i_neuron, i_t] = np.sum(expected_rewards[i_t:] * gamma_neuron ** (time - t)[i_t:])
-    return values
-
-
-def recompute_values_sated(gammas, values, time, probability_time):
-    # Recompute value
-    n_actions = probability_time.shape[0]
-    for action in range(n_actions):
-        plt.plot(probability_time[action])
-        for i_t, t in enumerate(time):
-            for i_neuron, gamma_neuron in enumerate(gammas):
-                values[action, i_neuron, i_t] = np.sum(probability_time[action, :] * gamma_neuron ** (time))
-    return values

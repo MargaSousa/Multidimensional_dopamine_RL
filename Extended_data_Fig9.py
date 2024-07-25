@@ -6,7 +6,7 @@ import scipy
 import seaborn as sns
 from scipy import stats
 from scipy.stats import gaussian_kde
-from aux_functions import run_decoding, get_expectiles
+from aux_functions import run_decoding_magnitude, get_expectiles
 
 # Parameters for plots
 length_ticks = 2
@@ -138,13 +138,13 @@ n_samples = 100
 bin_start = 15  # For defining the probability of no reward
 for cue in range(4):
     for bin_time in range(n_time):
-        sampled_dist_synthetic_uni, loss_synthetic = run_decoding(synthetic_delta_fr_time_uni[cue, :, bin_time], taus,
+        sampled_dist_synthetic_uni, loss_synthetic = run_decoding_magnitude(synthetic_delta_fr_time_uni[cue, :, bin_time], taus,
                                                                   np.ones(n_neurons), N=20, minv=min_reward,
                                                                   maxv=max_reward, max_samples=100, max_epochs=5,
                                                                   method='TNC')
 
         if cue == 2:
-            sampled_dist_synthetic, loss_synthetic = run_decoding(synthetic_delta_fr_time[:, bin_time], taus,
+            sampled_dist_synthetic, loss_synthetic = run_decoding_magnitude(synthetic_delta_fr_time[:, bin_time], taus,
                                                                   np.ones(n_neurons), N=20, minv=min_reward,
                                                                   maxv=max_reward, max_samples=100, max_epochs=5,
                                                                   method='TNC')

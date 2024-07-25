@@ -6,6 +6,12 @@ import matplotlib.pyplot as plt
 import matplotlib as mpl
 import scipy.stats
 from aux_functions import get_expectiles
+import pandas as pd
+
+
+# Directory to save intermediary data
+dir_save_for_plot=r"C:\Users\Margarida\Learning Lab Dropbox\Learning Lab Team Folder\Patlab protocols\data\MS\Data_paper_organized\Figure_1"
+
 
 # Parameters for plots
 length_ticks = 3
@@ -58,24 +64,24 @@ probability_exp = probability_exp / np.sum(probability_exp)
 pos_expectiles, expectiles_variable = get_expectiles(x_exp, probability_exp, taus)
 
 # Save expectiles
-np.save("expectiles_ss.npy", expectiles_ss)
-np.save("expectiles_ll.npy", expectiles_ll)
-np.save("expectiles_variable.npy", expectiles_variable)
+np.savetxt(dir_save_for_plot+"\expectiles_ss.csv", expectiles_ss)
+np.savetxt(dir_save_for_plot+"\expectiles_ll.csv", expectiles_ll)
+np.savetxt(dir_save_for_plot+"\expectiles_variable.csv", expectiles_variable)
 
 # Decode distributions
-samples_ss, _ = run_decoding(expectiles_ss, taus, np.ones(len(taus)), minv=1, maxv=10, N=20, max_samples=2000,
+samples_ss, _ = run_decoding_magnitude(expectiles_ss, taus, np.ones(len(taus)), minv=1, maxv=10, N=20, max_samples=2000,
                              max_epochs=15, method='TNC')
 kde_ss = gaussian_kde(samples_ss, bw_method=smooth)
 y_ss = kde_ss.pdf(x_pdf)
 y_ss = y_ss / np.sum(y_ss)
 
-samples_ll, _ = run_decoding(expectiles_ll, taus, np.ones(len(taus)), minv=1, maxv=10, N=20, max_samples=2000,
+samples_ll, _ = run_decoding_magnitude(expectiles_ll, taus, np.ones(len(taus)), minv=1, maxv=10, N=20, max_samples=2000,
                              max_epochs=15, method='TNC')
 kde_ll = gaussian_kde(samples_ll, bw_method=smooth)
 y_ll = kde_ll.pdf(x_pdf)
 y_ll = y_ll / np.sum(y_ll)
 
-samples_variable, _ = run_decoding(expectiles_variable, taus, np.ones(len(taus)), minv=1, maxv=10, N=20,
+samples_variable, _ = run_decoding_magnitude(expectiles_variable, taus, np.ones(len(taus)), minv=1, maxv=10, N=20,
                                    max_samples=2000, max_epochs=15, method='TNC')
 kde_variable = gaussian_kde(samples_variable, bw_method=smooth)
 y_variable = kde_variable.pdf(x_pdf)
@@ -99,9 +105,14 @@ plt.legend()
 # fig.savefig(save_dir+r"\decoded_amount_cartoon.svg")
 plt.show()
 
-np.save("amount_pdf.npy", x_pdf)
-np.save("pdf_ss.npy", y_ss)
-np.save("pdf_ll.npy", y_ll)
-np.save("pdf_variable.npy", y_variable)
+# np.savetxt(dir_save_for_plot+r"\amount_pdf.csv", x_pdf)
+# np.savetxt(dir_save_for_plot+r"\pdf_ss.csv", y_ss)
+# np.savetxt(dir_save_for_plot+r"\pdf_ll.csv", y_ll)
+# np.savetxt(dir_save_for_plot+r"\pdf_variable.csv", y_variable)
+
+decoded_info={"Amount": x_pdf, "Decoded density SS": y_ss, "Decoded density LL": y_ll, "Decoded variable": y_variable}
+df = pd.DataFrame(decoded_info)
+df.to_csv(dir_save_for_plot+r'\Fig1b_pdf_amount_ss_ll_variable.csv',index=False,header=True, sep=',')
+
 
 print("time elapsed: {:.2f}s".format(timer.time() - start_time))

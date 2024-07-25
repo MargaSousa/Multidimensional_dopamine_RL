@@ -5,6 +5,7 @@ import matplotlib.pyplot as plt
 import matplotlib as mpl
 import seaborn as sns
 import matplotlib.colors as mcol
+import pandas as pd
 
 # Parameters for plots
 length_ticks = 3
@@ -20,6 +21,9 @@ mpl.rcParams['ytick.labelsize'] = font_size
 mpl.rcParams['lines.linewidth'] = linewidth
 horizontal_size = 1.5
 vertical_size = 1.5
+
+# Directory to save intermediary data
+dir_save_for_plot=r"C:\Users\Margarida\Learning Lab Dropbox\Learning Lab Team Folder\Patlab protocols\data\MS\Data_paper_organized\Figure_1"
 
 # Optimism colors (from Dabney et al, 2020)
 flatui = ["#9B59B6", "#3498DB", "#95A5A6", "#E74C3C", "#34495E", "#2ECC71"]
@@ -83,7 +87,8 @@ ax.tick_params(width=linewidth, length=length_ticks)
 ax.spines['left'].set_linewidth(linewidth)
 ax.spines['bottom'].set_linewidth(linewidth)
 colors_optimism = asym_cmap(np.linspace(0, 1, n_neurons))
-plt.scatter(Value[:, 0] / gammas ** n_states + np.random.normal(loc=0, scale=1, size=n_neurons) * 0.05, Value[:, -1],
+corrected_values_at_cue=Value[:, 0] / gammas ** n_states + np.random.normal(loc=0, scale=1, size=n_neurons) * 0.05
+plt.scatter(corrected_values_at_cue, Value[:, -1],
             c=taus, s=scatter_size, cmap=asym_cmap)  #
 plt.xlabel(r"$V_i$" + "(reward)")
 plt.ylabel("Values at reward")
@@ -91,5 +96,10 @@ plt.xlabel("Values at cue\n" + r"corrected for $\gamma$")
 plt.xticks([])
 plt.yticks([])
 plt.show()
+
+
+values_cue_reward={"Values at cue corrected for diversity in temporal discount": corrected_values_at_cue, "Values at reward":Value[:, -1]}
+df = pd.DataFrame(values_cue_reward)
+df.to_csv(dir_save_for_plot+r'\Fig1d_values_cue_reward.csv',index=False,header=True, sep=',')
 
 print("time elapsed: {:.2f}s".format(timer.time() - start_time))

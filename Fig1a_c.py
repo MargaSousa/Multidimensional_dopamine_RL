@@ -1,9 +1,11 @@
+import pdb
 import time as timer
 start_time = timer.time()
 import numpy as np
 import matplotlib.pyplot as plt
 import matplotlib as mpl
 import cmasher as cmr
+import pandas as pd
 
 # Parameters for plots
 length_ticks = 5
@@ -19,12 +21,16 @@ mpl.rcParams['lines.linewidth'] = linewidth
 mpl.rc('xtick', labelsize=8)
 mpl.rc('ytick', labelsize=8)
 
+# Directory to save intermediary data
+dir_save_for_plot=r"C:\Users\Margarida\Learning Lab Dropbox\Learning Lab Team Folder\Patlab protocols\data\MS\Data_paper_organized\Figure_1"
+
+
 # Number of units
 N = 1000
 gamma = np.linspace(0.01, 1, N)
 
 # Define reward times
-time_reward = np.array([2, 15])
+time_reward = np.array([2, 10])
 
 # Define color of each cue
 colors_plot = ["#7fc97f", "#beaed4", "#fdc086"]  # ss,ll,variable
@@ -58,6 +64,15 @@ plt.xticks([0], ["0"], fontsize=font_size)
 plt.yticks([])
 plt.show()
 
+
+value_soon_time=np.concatenate([value_soon_time,np.full(shape=len(value_late_time)-len(value_soon_time),fill_value=np.nan)])
+
+value_info={"Time": time_late[::-1],"Value SS": value_soon,"Value LL": value_late_time}
+df = pd.DataFrame(value_info)
+df.to_csv(dir_save_for_plot+r'\Fig1a_value_ss_ll.csv',index=False,header=True, sep=',')
+
+
+
 # Decode future reward using inverse Laplace transform (Tano et al 2020, Yable et al 2005)
 F = np.zeros((N, N_time))
 Value_stationary = np.zeros((N))
@@ -68,6 +83,9 @@ U, s, vh = np.linalg.svd(F, full_matrices=False)
 # Define value for stationary case
 for i_g, g in enumerate(gamma):
     Value_stationary[i_g] = np.sum(g ** times_disc)
+
+save_decoded_denisty=np.zeros((N_time,2))
+
 
 alpha = 20  # smoothing parameter
 fig, ax = plt.subplots(figsize=(vertical_size, horizontal_size))
@@ -83,19 +101,20 @@ for i_time, time in enumerate(time_reward):
     p[p < 0] = 0
     p = p / np.sum(p)
     plt.plot(times_disc, p, color=colors_plot[i_time])
-    plt.xlabel("Reward delay")
-    np.save("pdf_time_" + str(i_time) + ".npy", p)
+    save_decoded_denisty[:,i_time]=p
 
+plt.xlabel("Reward delay")
 plt.ylabel("Decoded density\nat cue")
 ax.spines['left'].set_linewidth(linewidth)
 ax.spines['bottom'].set_linewidth(linewidth)
 plt.xticks([])
 plt.yticks([])
-p_stationary = p_stationary / np.sum(p_stationary)
 plt.show()
 
-np.save("time_disc.npy", times_disc)
-np.save("pdf_stationary.npy", p_stationary)
+decoded_info={"Time": times_disc, "Decoded density SS": save_decoded_denisty[:,0], "Decoded density LL": save_decoded_denisty[:,1]}
+df = pd.DataFrame(decoded_info)
+df.to_csv(dir_save_for_plot+r'\Fig1c_pdf_time_ss_ll.csv',index=False,header=True, sep=',')
+
 
 # Multiple temporal discounts value plot
 N_neurons = 6
