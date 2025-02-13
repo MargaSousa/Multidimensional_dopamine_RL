@@ -54,9 +54,7 @@ def get_estimated_expectile(reward_amounts_control,responses):
         pcov_pos=pcov_pos[0][0]
         popt_neg=np.nan
         con=popt_pos
-        min_var = np.abs(pcov_pos)
-        r_squared_neg = np.nan
-        r_squared_pos = np.nan
+
     elif zc>reward_amounts_control.shape[0]-1:
         reversal_point=reward_amounts_control[-1]-0.1 # arbitrary, we don't know
         tau=1
@@ -69,9 +67,7 @@ def get_estimated_expectile(reward_amounts_control,responses):
         pcov_neg=pcov_neg[0][0]
         popt_pos=np.nan
         con=popt_neg/tau
-        min_var=np.abs(pcov_neg)
-        r_squared_neg = np.nan
-        r_squared_pos = np.nan
+
     else:
         neighbors=np.array([critvals[mcv-1],critvals[mcv],critvals[mcv+1]])
         w=np.abs(np.diff(neighbors))
@@ -94,18 +90,8 @@ def get_estimated_expectile(reward_amounts_control,responses):
         reg_pos=LinearRegression(fit_intercept=False,positive=True).fit(x_pos.reshape(-1,1),y_pos)
         popt_neg=reg_neg.coef_[0]
         popt_pos=reg_pos.coef_[0]
-        r_squared_neg=reg_neg.score(x_neg.reshape(-1,1),y_neg)
-        r_squared_pos=reg_pos.score(x_pos.reshape(-1,1), y_pos)
-
-        #popt_neg, pcov_neg = curve_fit(f_reward,x_neg, y_neg,bounds=[0,np.inf])
-        #popt_pos, pcov_pos = curve_fit(f_reward, x_pos, y_pos,bounds=[0,np.inf])
-        #popt_pos=popt_pos[0]
-        #popt_neg=popt_neg[0]
-        #pcov_neg=pcov_neg[0][0]
-        #pcov_pos=pcov_pos[0][0]
         tau = np.abs(popt_pos) / (np.abs(popt_pos) + np.abs(popt_neg))
         con=popt_pos/tau
-        #min_var=min(np.abs(pcov_neg),np.abs(pcov_pos))
     if reversal_point<1:
         popt_neg=np.nan
     return reversal_point,tau,popt_neg,popt_pos,con
@@ -268,16 +254,18 @@ def safe_literal_eval(val):
         return val  # Return the original value if it can't be parsed
 
 
-def moving_average(y,mean,bin_width,kernel_type):
-    n_bins = (mean / bin_width) * 12
+def moving_average(y, mean_kernel, bin_width, kernel_type):
+    """Outputs the moving average of a signal y with a kernel of kernel type with mean
+    mean_kernel and bin width bin_width."""
+    n_bins = (mean_kernel / bin_width) * 9
     bins = np.arange(n_bins / 2)
     x = bins * bin_width
 
-    if kernel_type=="boxcart":
-        kernel=x*0
-        kernel[x<mean]=1
+    if kernel_type == "boxcart":
+        kernel = x * 0
+        kernel[x < mean_kernel] = 1
     else:
-        decay = 1 / mean
+        decay = 1 / mean_kernel
         kernel = np.exp(-x * decay)
 
     kernel = kernel / np.sum(kernel)

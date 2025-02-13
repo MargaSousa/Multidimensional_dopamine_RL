@@ -1,5 +1,4 @@
 import pdb
-
 from aux_functions import *
 import matplotlib.pyplot as plt
 import matplotlib as mpl
@@ -235,7 +234,7 @@ for i in range(2):
     distribution_id_trials = dataframe_behavior_times[dataframe_behavior_times['Neuron id'] == neuron_id][
         'Distribution reward ID'].values
 
-    # Delay to reward for each trial
+    # Amount of reward for each trial
     amount_reward_trials = dataframe_behavior_times[dataframe_behavior_times['Neuron id'] == neuron_id][
         'Amount reward'].values
 
