@@ -49,7 +49,6 @@ mpl.rc('xtick', labelsize=labelsize)
 mpl.rc('ytick', labelsize=labelsize)
 mpl.rc('legend', fontsize=legendsize)
 
-# Select neurons (either "DA" or "putative_DA")
 # Where folder is saved
 directory = "/Users/margaridasousa/Desktop/Data_repository_paper"
 

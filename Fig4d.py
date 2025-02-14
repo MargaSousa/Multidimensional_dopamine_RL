@@ -8,7 +8,6 @@ import scipy
 import os
 from scipy.stats import gaussian_kde
 import pandas
-
 mpl.use('TkAgg')
 
 # Parameters for paper plots
@@ -68,7 +67,7 @@ data_frame_pupil_area = pd.read_csv(os.path.join(directory_raw_data, "Pupil_diam
 # For the reward time Laplace decoder
 n_time = 100
 time = np.linspace(0, 6.5, n_time)
-n_runs_decoder = 10
+n_runs_decoder = 1000
 alpha_time = 1
 
 # Decode time for variable cue
@@ -117,21 +116,16 @@ legend_quantiles = ["1st", "2nd", "3rd", "4th", "5th"]
 # Get responses of individual neurons for different reward history quantiles
 responses_cue_variable = np.empty((n_quantiles, n_neurons, 150))
 responses_cue_variable[:, :, :] = np.nan
-i_neuron = 0
-i_session_overall = 0
-
+total_neurons=0
 for i_animal, animal in enumerate(animals):
 
-    prev_session = -1
-    i_session = 0
-
-    # Get individual animal time-scale to intergrate reward
+    # Get individual animal time-scale to integrate reward
     m = data_frame_pupil_area[data_frame_pupil_area['Animal'] == animal]['Time scale (trials)'].values[0]
 
     photo_ided_animal = dataframe_behavior_times.loc[
-        dataframe_behavior_times['Type of neuron'] == 'Photo_ided', 'Neuron id'].drop_duplicates().values
+        (dataframe_behavior_times['Type of neuron'] == 'Photo_ided') & (dataframe_behavior_times['Animal'] == animal), 'Neuron id'].drop_duplicates().values
 
-    for i_neuron, neuron_id in enumerate(photo_ided_animal):
+    for neuron_id in photo_ided_animal:
 
         session = dataframe_behavior_times.loc[dataframe_behavior_times['Neuron id'] == neuron_id, 'Session'].iat[0]
 
@@ -177,14 +171,10 @@ for i_animal, animal in enumerate(animals):
                                                  np.where(moving_average_amounts <= quantiles[i_quantile + 1])[0]) + 1
             trials_pos_quantile = trials_pos_quantile[trials_pos_quantile < max_trial_number]
             n_trials_quantile = len(trials_pos_quantile)
-            responses_cue_variable[i_quantile, i_neuron, :n_trials_quantile] = responses_neuron[trials_pos_quantile]
+            responses_cue_variable[i_quantile, total_neurons, :n_trials_quantile] = responses_neuron[trials_pos_quantile]
 
-            if i_quantile == n_quantiles - 1:
-                i_session_overall += 1
-                i_session += 1
+        total_neurons+=1
 
-        i_neuron += 1
-        prev_session = int(session)
 
 fig_dist, ax_dist = plt.subplots(figsize=(horizontal_size * 2, vertical_size), nrows=1, ncols=2)
 
@@ -208,8 +198,8 @@ for i_quantile in range(n_quantiles):
 
         # Correct for the diversity in tuning to reward magnitude and gain
         mean_responses_corrected_diverse_tuning_magnitude = reg_variable.coef_[0] * mean_responses / (
-                    gains * (estimated_reversals - reg_variable.intercept_))  #
-        # mean_responses_corrected_diverse_tuning_magnitude = mean_responses / (gains * estimated_reversals)
+                    gains * (estimated_reversals - reg_variable.intercept_))
+        #mean_responses_corrected_diverse_tuning_magnitude = mean_responses / (gains * estimated_reversals)
 
         # Decoding time
         pdf_time = run_decoding_time(time, gammas, np.ones(len(gammas)),
