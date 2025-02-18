@@ -2,9 +2,6 @@ import ast
 import os
 import pdb
 from functools import reduce
-
-import pandas as pd
-
 from aux_functions import *
 
 # Where folder is saved
@@ -13,13 +10,14 @@ directory_raw_data = os.path.join(directory, "Raw")
 
 # Behavior information data
 dataframe_behavior_times = pd.read_csv(os.path.join(directory_raw_data, "Neurons_behavior_trials_with_PSTH.csv"))
-type_neurons = "DA"  # either "DA" or "putative_DA"
 
-# Get dataframe for selected neuron type
-if type_neurons == "DA":
-    dataframe_behavior_times = dataframe_behavior_times[dataframe_behavior_times['Type of neuron'] == 'Photo_ided']
-else:
-    dataframe_behavior_times = dataframe_behavior_times[dataframe_behavior_times['Type of neuron'] == 'Putative_DA']
+type_neurons = "Putative_DA" #"Photo_ided" or "Putative_DA"
+
+if type_neurons=="Photo_ided":
+    dataframe_behavior_times = dataframe_behavior_times[dataframe_behavior_times['Is photo ided'] == 1]
+
+if type_neurons=="Putative_DA":
+    dataframe_behavior_times = dataframe_behavior_times[dataframe_behavior_times['Type of neuron'] == type_neurons]
 
 dataframe_behavior_times['PSTH cue'] = dataframe_behavior_times['PSTH cue'].apply(ast.literal_eval)
 dataframe_behavior_times['PSTH reward'] = dataframe_behavior_times['PSTH reward'].apply(ast.literal_eval)
@@ -120,10 +118,12 @@ total_neurons = 0
 
 for animal in [3353, 4098, 4099, 4096, 4140, 4418]:
 
-    neurons_ids = dataframe_behavior_times.loc[(dataframe_behavior_times['Type of neuron'] == 'Photo_ided') & (
-                dataframe_behavior_times['Animal'] == animal), 'Neuron id'].drop_duplicates().values
+    if type_neurons=="Putative_DA":
+        neurons_ids = dataframe_behavior_times.loc[ (dataframe_behavior_times['Type of neuron'] == "Putative_DA") &(dataframe_behavior_times['Animal'] == animal),'Neuron id'].drop_duplicates().values
 
-    print(neurons_ids)
+    if type_neurons=="Photo_ided":
+        neurons_ids = dataframe_behavior_times.loc[ (dataframe_behavior_times['Is photo ided'] == 1) &(dataframe_behavior_times['Animal'] == animal),'Neuron id'].drop_duplicates().values
+
 
     for i_neuron, neuron_id in enumerate(neurons_ids):
 
@@ -295,6 +295,7 @@ for animal in [3353, 4098, 4099, 4096, 4140, 4418]:
         all_sessions.append(session)
         all_neurons_id.append(neuron_id)
 
+
 # Data frame with estimated tuning functions for each neuron
 column_names = ["Neuron id", "Animal", "Session", "Gamma", "Gamma estimated excluding delay=0", "Is take long",
                 "Gamma 1st half before time manipulation", "Gamma 2nd half before time manipulation",
@@ -306,7 +307,10 @@ info_neurons = np.column_stack((all_neurons_id, all_animals, all_sessions, all_e
                                 all_estimated_gamma_after, all_estimated_gain, gain_not_zero, all_estimated_reversals,
                                 all_estimated_taus, slope_positive, slope_negative))
 df = pd.DataFrame(info_neurons, columns=column_names)
-# df.to_csv(dir+r'\dataframe_neurons_info.csv',index=False,header=True, sep=',')
+
+# Directory where to solve parsed data
+dir_save="/Users/margaridasousa/Desktop/Data_repository_paper/Parsed_data_putative_DA"
+#df.to_csv(dir_save+r'/dataframe_neurons_info.csv',index=False,header=True, sep=',')
 
 # Tables where each line is a single neuron
 responses_cue = responses_cue[:total_neurons, :, :]
@@ -347,16 +351,17 @@ psth_cue[:n_neurons_less_delays, 2, :] = psth_cue[:n_neurons_less_delays, 1, :]
 psth_cue[:n_neurons_less_delays, 1, :] = psth_cue[:n_neurons_less_delays, 0, :]
 psth_cue[:n_neurons_less_delays, 0, :] = 'nan'
 
-# np.save(dir + r"\responses_cue_different_delays_constant_magnitude.npy", responses_cue)
-# np.save(dir + r"\responses_reward_different_magnitudes_constant_delay.npy", responses_reward)
-# np.save(dir + r"\responses_reward_different_delays_constant_magnitude.npy", responses_reward_all)
-# np.save(dir + r"\responses_reward_different_delays_constant_magnitude_not_baseline_corrected.npy", responses_reward_all_not_baseline_corrected)
-# np.savetxt(dir + r"\responses_cue_different_magnitudes_constant_delay.csv", responses_cue_bimodal)
-# np.save(dir + r"\responses_cue_different_magnitudes_constant_delay_per_amount.npy", responses_cue_bimodal_mat)
-# np.save(dir + r"\responses_cue_after_time_manipulation.npy", responses_cue_after)
-# np.savetxt(dir + r"\responses_reward_certain_magnitude_3s_delay.csv", responses_reward_certain)
-# np.save(dir + r"\psth_reward.npy", psth_reward) # PSTH aligned to reward delivery for constant delay (3s) and different reward magnitudes
-# np.save(dir + r"\psth_cue.npy", psth_cue) # PSTH aligned to cue delivery for constant magnitude (4.5ul) and different reward delays (0s, 1.5s, 3s, 6s)
+
+# np.save(dir_save + r"/responses_cue_different_delays_constant_magnitude.npy", responses_cue)
+# np.save(dir_save + r"/responses_reward_different_magnitudes_constant_delay.npy", responses_reward)
+# np.save(dir_save + r"/responses_reward_different_delays_constant_magnitude.npy", responses_reward_all)
+# np.save(dir_save + r"/responses_reward_different_delays_constant_magnitude_not_baseline_corrected.npy", responses_reward_all_not_baseline_corrected)
+# np.savetxt(dir_save + r"/responses_cue_different_magnitudes_constant_delay.csv", responses_cue_bimodal)
+# np.save(dir_save + r"/responses_cue_different_magnitudes_constant_delay_per_amount.npy", responses_cue_bimodal_mat)
+# np.save(dir_save + r"/responses_cue_after_time_manipulation.npy", responses_cue_after)
+# np.savetxt(dir_save + r"/responses_reward_certain_magnitude_3s_delay.csv", responses_reward_certain)
+# np.save(dir_save + r"/psth_reward.npy", psth_reward) # PSTH aligned to reward delivery for constant delay (3s) and different reward magnitudes
+# np.save(dir_save + r"/psth_cue.npy", psth_cue) # PSTH aligned to cue delivery for constant magnitude (4.5ul) and different reward delays (0s, 1.5s, 3s, 6s)
 
 
 pdb.set_trace()

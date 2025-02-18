@@ -45,7 +45,7 @@ colors_animals=mpl.cm.get_cmap('Set2', 12)(np.linspace(0,1,6))[::-1]
 directory = "/Users/margaridasousa/Desktop/Data_repository_paper"
 
 # Parsed data directory
-type_neurons = "DA"  # either "DA" or "putative_DA"
+type_neurons = "Putative_DA"  # either "DA" or "Putative_DA"
 directory_parsed_data = os.path.join(directory, "Parsed_data_" + type_neurons)
 
 # Get estimated tuning for each neuron
@@ -67,6 +67,7 @@ n_neurons=len(discount)
 bias_taus=data_frame_neurons_info['Bias in the estimation of tau'].values[selected_neurons] # Generated from Fig4_get_bias_variance_estimation_tau
 variance_tau=data_frame_neurons_info['Variance in the estimation of tau'].values[selected_neurons] # Generated from Fig4_get_bias_variance_estimation_tau
 animals=data_frame_neurons_info['Animal'].values[selected_neurons]
+
 
 # Get responses for certain and variable cues
 responses_cue=np.load(os.path.join(directory_parsed_data,"responses_cue_different_delays_constant_magnitude.npy"))[selected_neurons,:,:] # Responses at the cue for variable reward delays
@@ -121,13 +122,13 @@ reward_times=[0,1.5,3,6]
 # Decode reward time and magnitude  for all cues that predict a certain reward magnitude at different delays
 n_runs=10
 
-for cue in range(4):
+for cue in range(4): # for animal 3353: range(1,4)
 
     pdf_time=0*time
     pdf_amount=0*amount
 
 
-    for run in range(n_runs): # for animal 3353 range(1,4)
+    for run in range(n_runs):
 
         population_responses = np.nanmean(responses_cue[:, cue], axis=1)
         n_neurons=np.sum(np.isnan(population_responses)) # Some neurons were not recorded in all delays
@@ -179,7 +180,7 @@ iso_reg_reward = IsotonicRegression(increasing=True).fit(estimated_reversals[wel
 pred_reward = iso_reg_reward.predict(estimated_reversals[well_estimated_reversals])
 
 # Run decoding over magnitude at the cue and reward
-n_runs=10
+n_runs=1
 for run in range(n_runs):
 
     samples, _ = run_decoding_magnitude(reversal_estimated_at_cue, pred_cue,np.ones(len(reversal_estimated_at_cue)), minv=1, maxv=8, N=20,max_samples=2000, max_epochs=15, method='TNC')
@@ -253,11 +254,11 @@ joint_pdf_variable_reward=joint_pdf_variable_reward/np.sum(joint_pdf_variable_re
 # Plot stacked heat map
 color_map=sns.color_palette("coolwarm", as_cmap=True)
 mesh=np.meshgrid(amount,time[::-1])
-fig, ax = plt.subplots(figsize=(horizontal_size*4.5,vertical_size*12),subplot_kw={"projection": "3d"})# 1.75 and 12 for animal 3353
+fig, ax = plt.subplots(figsize=(horizontal_size*3,vertical_size*5.5),subplot_kw={"projection": "3d"})# 1.75 and 12 for animal 3353
 fig.set_facecolor('w')
 ax.set_facecolor('w')
 ax.view_init(elev=-150, azim=50)
-ax.set_box_aspect((1, 1, 3.75))
+ax.set_box_aspect((1, 1, 2))
 for i_d in np.arange(4):
     scam = plt.cm.ScalarMappable(norm=mpl.colors.Normalize(np.min(joint_pdf_certain_reward[:, :, i_d]), np.max(joint_pdf_certain_reward[:, :, i_d])),cmap=color_map)
     ax.plot_surface(mesh[0],mesh[1],-0.01*i_d + 0*joint_pdf_certain_reward[:, :, i_d], facecolors=scam.to_rgba(joint_pdf_certain_reward[:, :, i_d]),antialiased = True,rstride=1,cstride=1,alpha=None,shade=False)
@@ -271,4 +272,5 @@ ax.set_yticks([0,1.5,3,6],["0","1.5","3","6"])
 ax.set_xticks([1,4.5,8],["1","4.5","8"])
 fig.tight_layout()
 ax.set_zlim([-0.04,0])
+#plt.savefig("heatmap.eps")
 plt.show()
