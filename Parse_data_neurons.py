@@ -11,7 +11,7 @@ directory_raw_data = os.path.join(directory, "Raw")
 # Behavior information data
 dataframe_behavior_times = pd.read_csv(os.path.join(directory_raw_data, "Neurons_behavior_trials_with_PSTH.csv"))
 
-type_neurons = "Putative_DA" #"Photo_ided" or "Putative_DA"
+type_neurons ="Photo_ided" #"Putative_DA" #"Photo_ided" or "Putative_DA"
 
 if type_neurons=="Photo_ided":
     dataframe_behavior_times = dataframe_behavior_times[dataframe_behavior_times['Is photo ided'] == 1]
@@ -19,8 +19,10 @@ if type_neurons=="Photo_ided":
 if type_neurons=="Putative_DA":
     dataframe_behavior_times = dataframe_behavior_times[dataframe_behavior_times['Type of neuron'] == type_neurons]
 
-dataframe_behavior_times['PSTH cue'] = dataframe_behavior_times['PSTH cue'].apply(ast.literal_eval)
-dataframe_behavior_times['PSTH reward'] = dataframe_behavior_times['PSTH reward'].apply(ast.literal_eval)
+dataframe_behavior_times['PSTH cue'] = dataframe_behavior_times.loc[:,
+                                       'PSTH aligned to cue bin 0':'PSTH aligned to cue bin 649'].values.tolist()
+dataframe_behavior_times['PSTH reward'] = dataframe_behavior_times.loc[:,
+                                          'PSTH aligned to reward bin 0':'PSTH aligned to reward bin 649'].values.tolist()
 
 # Time limits for PSTH
 axes_correct = np.linspace(-5, 8, 650)
@@ -38,8 +40,8 @@ window_integration_reward = [np.where(axes_correct >= time_init_reward)[0][0],
                              np.where(axes_correct >= time_end_reward)[0][0]]
 
 # Window aligned to cue delivery for computing responses
-time_init_cue = 0.2
-time_end_cue = 0.65
+time_init_cue = 0.3#0.2
+time_end_cue = 0.45#0.65
 time_window_integration_cue = [time_init_cue, time_end_cue]
 window_integration_cue = [np.where(axes_correct >= time_init_cue)[0][0], np.where(axes_correct >= time_end_cue)[0][0]]
 
@@ -168,6 +170,7 @@ for animal in [3353, 4098, 4099, 4096, 4140, 4418]:
         # Variable delay trials
         delays_unique =np.sort(dataframe_behavior_neuron.loc[dataframe_behavior_neuron['Distribution reward ID'] == 0, 'Delay reward'].unique())
         n_delays = len(delays_unique)
+        all_neurons_n_delays.append(n_delays)
         count_delays_after = 0
         delays_after = []
         for i_d, d in enumerate(delays_unique):
@@ -309,7 +312,9 @@ info_neurons = np.column_stack((all_neurons_id, all_animals, all_sessions, all_e
 df = pd.DataFrame(info_neurons, columns=column_names)
 
 # Directory where to solve parsed data
-dir_save="/Users/margaridasousa/Desktop/Data_repository_paper/Parsed_data_putative_DA"
+dir_save="/Users/margaridasousa/Desktop/Data_repository_paper/Parsed_data_DA_second_phase_shorter_window"
+
+
 #df.to_csv(dir_save+r'/dataframe_neurons_info.csv',index=False,header=True, sep=',')
 
 # Tables where each line is a single neuron
@@ -352,16 +357,16 @@ psth_cue[:n_neurons_less_delays, 1, :] = psth_cue[:n_neurons_less_delays, 0, :]
 psth_cue[:n_neurons_less_delays, 0, :] = 'nan'
 
 
-# np.save(dir_save + r"/responses_cue_different_delays_constant_magnitude.npy", responses_cue)
-# np.save(dir_save + r"/responses_reward_different_magnitudes_constant_delay.npy", responses_reward)
-# np.save(dir_save + r"/responses_reward_different_delays_constant_magnitude.npy", responses_reward_all)
-# np.save(dir_save + r"/responses_reward_different_delays_constant_magnitude_not_baseline_corrected.npy", responses_reward_all_not_baseline_corrected)
-# np.savetxt(dir_save + r"/responses_cue_different_magnitudes_constant_delay.csv", responses_cue_bimodal)
-# np.save(dir_save + r"/responses_cue_different_magnitudes_constant_delay_per_amount.npy", responses_cue_bimodal_mat)
-# np.save(dir_save + r"/responses_cue_after_time_manipulation.npy", responses_cue_after)
-# np.savetxt(dir_save + r"/responses_reward_certain_magnitude_3s_delay.csv", responses_reward_certain)
-# np.save(dir_save + r"/psth_reward.npy", psth_reward) # PSTH aligned to reward delivery for constant delay (3s) and different reward magnitudes
-# np.save(dir_save + r"/psth_cue.npy", psth_cue) # PSTH aligned to cue delivery for constant magnitude (4.5ul) and different reward delays (0s, 1.5s, 3s, 6s)
+np.save(dir_save + r"/responses_cue_different_delays_constant_magnitude.npy", responses_cue)
+np.save(dir_save + r"/responses_reward_different_magnitudes_constant_delay.npy", responses_reward)
+np.save(dir_save + r"/responses_reward_different_delays_constant_magnitude.npy", responses_reward_all)
+np.save(dir_save + r"/responses_reward_different_delays_constant_magnitude_not_baseline_corrected.npy", responses_reward_all_not_baseline_corrected)
+np.savetxt(dir_save + r"/responses_cue_different_magnitudes_constant_delay.csv", responses_cue_bimodal)
+np.save(dir_save + r"/responses_cue_different_magnitudes_constant_delay_per_amount.npy", responses_cue_bimodal_mat)
+np.save(dir_save + r"/responses_cue_after_time_manipulation.npy", responses_cue_after)
+np.savetxt(dir_save + r"/responses_reward_certain_magnitude_3s_delay.csv", responses_reward_certain)
+np.save(dir_save + r"/psth_reward.npy", psth_reward) # PSTH aligned to reward delivery for constant delay (3s) and different reward magnitudes
+np.save(dir_save + r"/psth_cue.npy", psth_cue) # PSTH aligned to cue delivery for constant magnitude (4.5ul) and different reward delays (0s, 1.5s, 3s, 6s)
 
 
 pdb.set_trace()

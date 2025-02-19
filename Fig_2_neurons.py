@@ -85,7 +85,7 @@ bin_right = np.where(axes_correct >= time_right)[0][0]
 axes = axes_correct[bin_left:bin_right]
 
 # Get 'Neuron id' for photo ided-neurons
-photo_ided_neuron_ids = dataframe_behavior_times.loc[dataframe_behavior_times['Type of neuron'] == 'Photo_ided', 'Neuron id'].drop_duplicates().values
+photo_ided_neuron_ids = dataframe_behavior_times.loc[dataframe_behavior_times['Is photo ided'] == 1, 'Neuron id'].drop_duplicates().values
 
 
 fig, ax = plt.subplots(2, 4, figsize=(horizontal_size * 4, vertical_size * 2), sharex='col', sharey='row')  #

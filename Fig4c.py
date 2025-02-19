@@ -99,7 +99,7 @@ ticks_axis_value = [0]
 
 for i_animal, animal in enumerate(["4096", "4418", "4099", "3353", "4098", "4140"]):
 
-    # Get individual animal time-scale to intergrate reward
+    # Get individual animal time-scale to integrate reward
     m = data_frame_pupil_area[data_frame_pupil_area['Animal'] == animal]['Time scale (trials)'].values[0]
 
     prev_session = -1

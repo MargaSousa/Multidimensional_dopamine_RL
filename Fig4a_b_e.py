@@ -45,7 +45,7 @@ colors_animals=mpl.cm.get_cmap('Set2', 12)(np.linspace(0,1,6))[::-1]
 directory = "/Users/margaridasousa/Desktop/Data_repository_paper"
 
 # Parsed data directory
-type_neurons = "Putative_DA"  # either "DA" or "Putative_DA"
+type_neurons = "DA"  # either "DA" or "Putative_DA"
 directory_parsed_data = os.path.join(directory, "Parsed_data_" + type_neurons)
 
 # Get estimated tuning for each neuron
@@ -254,11 +254,11 @@ joint_pdf_variable_reward=joint_pdf_variable_reward/np.sum(joint_pdf_variable_re
 # Plot stacked heat map
 color_map=sns.color_palette("coolwarm", as_cmap=True)
 mesh=np.meshgrid(amount,time[::-1])
-fig, ax = plt.subplots(figsize=(horizontal_size*3,vertical_size*5.5),subplot_kw={"projection": "3d"})# 1.75 and 12 for animal 3353
+fig, ax = plt.subplots(figsize=(horizontal_size*3,vertical_size*7),subplot_kw={"projection": "3d"})# 1.75 and 12 for animal 3353
 fig.set_facecolor('w')
 ax.set_facecolor('w')
 ax.view_init(elev=-150, azim=50)
-ax.set_box_aspect((1, 1, 2))
+ax.set_box_aspect((1, 1, 2.25))
 for i_d in np.arange(4):
     scam = plt.cm.ScalarMappable(norm=mpl.colors.Normalize(np.min(joint_pdf_certain_reward[:, :, i_d]), np.max(joint_pdf_certain_reward[:, :, i_d])),cmap=color_map)
     ax.plot_surface(mesh[0],mesh[1],-0.01*i_d + 0*joint_pdf_certain_reward[:, :, i_d], facecolors=scam.to_rgba(joint_pdf_certain_reward[:, :, i_d]),antialiased = True,rstride=1,cstride=1,alpha=None,shade=False)
@@ -272,5 +272,5 @@ ax.set_yticks([0,1.5,3,6],["0","1.5","3","6"])
 ax.set_xticks([1,4.5,8],["1","4.5","8"])
 fig.tight_layout()
 ax.set_zlim([-0.04,0])
-#plt.savefig("heatmap.eps")
-plt.show()
+plt.savefig("heatmap.eps")
+#plt.show()
