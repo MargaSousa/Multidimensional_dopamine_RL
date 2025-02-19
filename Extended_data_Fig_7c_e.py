@@ -200,8 +200,8 @@ label_cues = ["1.5s cue", "3s cue", "6s cue", "Variable 3s cue"]
 # Save joint pdf for 4 certain cues
 joint_pdf_certain_reward = np.empty((n_time, n_amount, 4))
 
-n_runs_2d_decoder = 10
-is_shuffle = True  # Shuffle the population temporal discount factors or not
+n_runs_2d_decoder = 100 # takes quite a long time
+is_shuffle = False  # Shuffle the population temporal discount factors or not
 kl_runs = np.zeros((n_runs_2d_decoder, 5))
 
 label_cues = ["0s", "1.5s cue", "3s cue", "6s cue", "Variable 3s cue"]
