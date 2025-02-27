@@ -11,7 +11,7 @@ directory_raw_data = os.path.join(directory, "Raw")
 # Behavior information data
 dataframe_behavior_times = pd.read_csv(os.path.join(directory_raw_data, "Neurons_behavior_trials_with_PSTH.csv"))
 
-type_neurons ="Photo_ided" #"Putative_DA" #"Photo_ided" or "Putative_DA"
+type_neurons = "Putative_DA" #"Photo_ided" or "Putative_DA"
 
 if type_neurons=="Photo_ided":
     dataframe_behavior_times = dataframe_behavior_times[dataframe_behavior_times['Is photo ided'] == 1]
@@ -40,8 +40,8 @@ window_integration_reward = [np.where(axes_correct >= time_init_reward)[0][0],
                              np.where(axes_correct >= time_end_reward)[0][0]]
 
 # Window aligned to cue delivery for computing responses
-time_init_cue = 0.3#0.2
-time_end_cue = 0.45#0.65
+time_init_cue = 0.2
+time_end_cue = 0.65
 time_window_integration_cue = [time_init_cue, time_end_cue]
 window_integration_cue = [np.where(axes_correct >= time_init_cue)[0][0], np.where(axes_correct >= time_end_cue)[0][0]]
 
@@ -312,7 +312,7 @@ info_neurons = np.column_stack((all_neurons_id, all_animals, all_sessions, all_e
 df = pd.DataFrame(info_neurons, columns=column_names)
 
 # Directory where to solve parsed data
-dir_save="/Users/margaridasousa/Desktop/Data_repository_paper/Parsed_data_DA_second_phase_shorter_window"
+dir_save="/Users/margaridasousa/Desktop/Data_repository_paper/Parsed_data_putative_DA"
 
 
 #df.to_csv(dir_save+r'/dataframe_neurons_info.csv',index=False,header=True, sep=',')

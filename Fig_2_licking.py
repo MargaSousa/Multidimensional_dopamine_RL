@@ -1,9 +1,10 @@
 import os
-
+import pdb
 import matplotlib as mpl
 import matplotlib.pyplot as plt
 import numpy as np
 import scipy.stats
+mpl.use('TkAgg')
 
 # Parameters for paper plots
 # length_ticks=2

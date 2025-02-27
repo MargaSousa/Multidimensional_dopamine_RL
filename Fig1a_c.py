@@ -21,9 +21,6 @@ mpl.rcParams['lines.linewidth'] = linewidth
 mpl.rc('xtick', labelsize=8)
 mpl.rc('ytick', labelsize=8)
 
-# Directory to save intermediary data
-dir_save_for_plot=r"C:\Users\Margarida\Learning Lab Dropbox\Learning Lab Team Folder\Patlab protocols\data\MS\Data_paper_organized\Figure_1"
-
 
 # Number of units
 N = 1000
@@ -67,10 +64,6 @@ plt.show()
 
 value_soon_time=np.concatenate([value_soon_time,np.full(shape=len(value_late_time)-len(value_soon_time),fill_value=np.nan)])
 
-value_info={"Time": time_late[::-1],"Value SS": value_soon,"Value LL": value_late_time}
-df = pd.DataFrame(value_info)
-df.to_csv(dir_save_for_plot+r'\Fig1a_value_ss_ll.csv',index=False,header=True, sep=',')
-
 
 
 # Decode future reward using inverse Laplace transform (Tano et al 2020, Yable et al 2005)
@@ -83,8 +76,6 @@ U, s, vh = np.linalg.svd(F, full_matrices=False)
 # Define value for stationary case
 for i_g, g in enumerate(gamma):
     Value_stationary[i_g] = np.sum(g ** times_disc)
-
-save_decoded_denisty=np.zeros((N_time,2))
 
 
 alpha = 20  # smoothing parameter
@@ -101,7 +92,6 @@ for i_time, time in enumerate(time_reward):
     p[p < 0] = 0
     p = p / np.sum(p)
     plt.plot(times_disc, p, color=colors_plot[i_time])
-    save_decoded_denisty[:,i_time]=p
 
 plt.xlabel("Reward delay")
 plt.ylabel("Decoded density\nat cue")
@@ -110,10 +100,6 @@ ax.spines['bottom'].set_linewidth(linewidth)
 plt.xticks([])
 plt.yticks([])
 plt.show()
-
-decoded_info={"Time": times_disc, "Decoded density SS": save_decoded_denisty[:,0], "Decoded density LL": save_decoded_denisty[:,1]}
-df = pd.DataFrame(decoded_info)
-df.to_csv(dir_save_for_plot+r'\Fig1c_pdf_time_ss_ll.csv',index=False,header=True, sep=',')
 
 
 # Multiple temporal discounts value plot
@@ -175,10 +161,6 @@ plt.ylabel("Reward time")
 plt.xlabel("Reward magnitude")
 plt.xticks([])
 plt.yticks([])
-# divider = make_axes_locatable(ax)
-# cax = divider.append_axes("right", size="5%", pad=0.05)
-# plt.colorbar(im,cax=cax,ticks=[],label="Value at cue")#r"$V$"+"(cue)"
-# fig.savefig(save_dir+r"/heat_map_value_time_amount.svg")
 plt.show()
 
 print("time elapsed: {:.2f}s".format(timer.time() - start_time))

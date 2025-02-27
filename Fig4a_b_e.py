@@ -84,16 +84,18 @@ time=np.linspace(0,7.5,n_time)
 cue_times=np.array([0,1.5,3,6])
 alpha_time=1 # Smoothing parameter
 
+
 # Regression between firing rate at the cue and reversal points
 population_responses_variable = np.nanmean(responses_cue_bimodal,axis=1)
 population_responses_variable_corrected=population_responses_variable/(gains * discount**3) # Correct for diversity in temporal discouting functions
 well_estimated_reversals=np.intersect1d(np.where(estimated_reversals>1.1)[0],np.where(estimated_reversals<7.9)[0]) # We only give rewards in the range 1-8 uL
 reg_variable = HuberRegressor().fit((population_responses_variable_corrected[well_estimated_reversals]).reshape(-1, 1), estimated_reversals[well_estimated_reversals])
-y_example=reg_variable.predict(population_responses_variable_corrected[well_estimated_reversals].reshape(-1, 1))
+x_example=np.linspace(np.min(population_responses_variable_corrected[well_estimated_reversals]),np.max(population_responses_variable_corrected[well_estimated_reversals]),10)
+y_example=reg_variable.predict(x_example.reshape(-1, 1))
 
 plt.figure()
 plt.scatter(population_responses_variable_corrected[well_estimated_reversals],estimated_reversals[well_estimated_reversals],c=estimated_reversals[well_estimated_reversals],cmap=asym_cmap)
-plt.plot(population_responses_variable_corrected[well_estimated_reversals],y_example,ls="--",color="k")
+plt.plot(x_example,y_example,ls="--",color="k")
 plt.xlabel("Firing rate at cue")
 plt.ylabel("Reversal point")
 plt.show()
@@ -120,7 +122,7 @@ colors_delay = summer(np.linspace(0.4, 1, 4))[:,:3]
 reward_times=[0,1.5,3,6]
 
 # Decode reward time and magnitude  for all cues that predict a certain reward magnitude at different delays
-n_runs=10
+n_runs=1 #10
 
 for cue in range(4): # for animal 3353: range(1,4)
 
@@ -242,6 +244,8 @@ mean_responses_variable_cue_discount = reg_variable.coef_[0] * population_respon
 variance_variable=np.nanvar(responses_cue_bimodal,axis=1)
 pdf_time_variable=run_decoding_time(time,discount,variance_variable,mean_responses_variable_cue_discount,0.5)
 plt.plot(time,pdf_time_variable,label=str(alpha_time))
+plt.xlabel("Time since cue (s)")
+plt.ylabel("Probability")
 plt.legend()
 plt.show()
 
@@ -255,10 +259,12 @@ joint_pdf_variable_reward=joint_pdf_variable_reward/np.sum(joint_pdf_variable_re
 color_map=sns.color_palette("coolwarm", as_cmap=True)
 mesh=np.meshgrid(amount,time[::-1])
 fig, ax = plt.subplots(figsize=(horizontal_size*3,vertical_size*7),subplot_kw={"projection": "3d"})# 1.75 and 12 for animal 3353
+#fig, ax = plt.subplots(figsize=(horizontal_size*3*0.6,vertical_size*7*0.6),subplot_kw={"projection": "3d"})# 1.75 and 12 for animal 3353
 fig.set_facecolor('w')
 ax.set_facecolor('w')
 ax.view_init(elev=-150, azim=50)
-ax.set_box_aspect((1, 1, 2.25))
+ax.set_box_aspect((1, 1, 2.75))
+#ax.set_box_aspect((1, 1, 2))
 for i_d in np.arange(4):
     scam = plt.cm.ScalarMappable(norm=mpl.colors.Normalize(np.min(joint_pdf_certain_reward[:, :, i_d]), np.max(joint_pdf_certain_reward[:, :, i_d])),cmap=color_map)
     ax.plot_surface(mesh[0],mesh[1],-0.01*i_d + 0*joint_pdf_certain_reward[:, :, i_d], facecolors=scam.to_rgba(joint_pdf_certain_reward[:, :, i_d]),antialiased = True,rstride=1,cstride=1,alpha=None,shade=False)
@@ -272,5 +278,6 @@ ax.set_yticks([0,1.5,3,6],["0","1.5","3","6"])
 ax.set_xticks([1,4.5,8],["1","4.5","8"])
 fig.tight_layout()
 ax.set_zlim([-0.04,0])
-plt.savefig("heatmap.eps")
-#plt.show()
+#plt.savefig("heatmap.svg")
+plt.show()
+

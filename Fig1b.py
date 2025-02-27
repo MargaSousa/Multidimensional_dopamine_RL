@@ -9,10 +9,6 @@ from aux_functions import get_expectiles
 import pandas as pd
 
 
-# Directory to save intermediary data
-dir_save_for_plot=r"C:\Users\Margarida\Learning Lab Dropbox\Learning Lab Team Folder\Patlab protocols\data\MS\Data_paper_organized\Figure_1"
-
-
 # Parameters for plots
 length_ticks = 3
 font_size = 11
@@ -101,18 +97,7 @@ plt.xticks([])
 plt.yticks([])
 plt.xlim(0, 10)
 plt.legend()
-# plt.show()
-# fig.savefig(save_dir+r"\decoded_amount_cartoon.svg")
 plt.show()
-
-# np.savetxt(dir_save_for_plot+r"\amount_pdf.csv", x_pdf)
-# np.savetxt(dir_save_for_plot+r"\pdf_ss.csv", y_ss)
-# np.savetxt(dir_save_for_plot+r"\pdf_ll.csv", y_ll)
-# np.savetxt(dir_save_for_plot+r"\pdf_variable.csv", y_variable)
-
-decoded_info={"Amount": x_pdf, "Decoded density SS": y_ss, "Decoded density LL": y_ll, "Decoded variable": y_variable}
-df = pd.DataFrame(decoded_info)
-df.to_csv(dir_save_for_plot+r'\Fig1b_pdf_amount_ss_ll_variable.csv',index=False,header=True, sep=',')
 
 
 print("time elapsed: {:.2f}s".format(timer.time() - start_time))

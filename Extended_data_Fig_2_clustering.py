@@ -169,6 +169,26 @@ plt.yticks([1, n_neurons - 1], ["1", str(n_neurons)])
 plt.axhline(y=np.sum(labels == 1), color="white")
 plt.axhline(y=np.sum(labels == 1) + np.sum(labels == 2), color="white")
 
+
+# auROC for each neuron
+to_save_info = {"Neuron": np.arange(X_auROC.shape[0])}
+for i_bin,bin in enumerate(bins_cue):
+    to_save_info[str(np.round(bin,4))+"s relative to cue"]=X_auROC[leaves,i_bin]
+
+n_bins_cue=len(bins_cue)
+for i_bin,bin in enumerate(bins_reward):
+    to_save_info[str(np.round(bin,4)) + "s relative to reward"] = X_auROC[leaves, n_bins_cue+i_bin]
+df = pd.DataFrame(to_save_info)
+df.to_csv(r'\Extended_data_Fig2a.csv', index=False, header=True,sep=',')
+
+# Save PCA for each neuron
+to_save_info = {"Neuron": np.arange(neurons_pc_space.shape[0])}
+for i_pca in range(n_pcs):
+    to_save_info["PC "+str(i_pca+1)]=neurons_pc_space[leaves,i_pca]
+df = pd.DataFrame(to_save_info)
+df.to_csv('\Extended_data_Fig2b.csv', index=False, header=True,sep=',')
+
+
 # Plot photo ided neurons
 photo_ided_idx = np.unique(dataframe_behavior_times[dataframe_behavior_times['Is photo ided'] == 1]['Neuron id'].values)
 for j, pos_neu in enumerate(photo_ided_idx):
@@ -228,6 +248,13 @@ winter = mpl.cm.get_cmap('winter', 12)
 colors_amount = winter(np.linspace(0, 1, 5))
 summer = mpl.cm.get_cmap('Reds', 12)
 colors_delay = summer(np.linspace(0.4, 1, 4))
+
+save_psth_neurons=[]
+save_aligned_to=[]
+save_bins_psth=[]
+save_delay=[]
+save_magnitude=[]
+
 
 for neuron_type in neuron_types:
 

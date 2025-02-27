@@ -54,7 +54,7 @@ colors_delay = summer(np.linspace(0.4, 1, 4))
 directory = "/Users/margaridasousa/Desktop/Data_repository_paper"
 
 # Parsed data directory
-type_neurons = "DA"  # either "DA" or "putative_DA"
+type_neurons = "DA"  # either "DA" or "Putative_DA"
 directory_parsed_data = os.path.join(directory, "Parsed_data_" + type_neurons)
 
 # Get estimated tuning for reward time
@@ -176,9 +176,6 @@ plt.ylabel("Decoded density")
 plt.xticks([0, 1.5, 3, 6], ["0", "1.5", "3", "6"])
 plt.yticks([0, 0.1], ["0", "0.1"])
 plt.show()
-
-
-
 
 pdb.set_trace()
 

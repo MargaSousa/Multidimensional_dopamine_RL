@@ -175,7 +175,6 @@ for i in range(2):
     for i_d, d in enumerate(delays_unique):
         if len(delays_unique) < 4:
             i_d = i_d + 1
-
         mean_psth = np.nanmean(psth_cue[neuron_idx, i_d, :, :], axis=1)  # Mean over trials
         sem_psth = scipy.stats.sem(psth_cue[neuron_idx, i_d, :, :], axis=1,
                                    nan_policy='omit')  # Standard error of the mean over trials
@@ -255,7 +254,7 @@ for i in range(2):
     amounts_filtered = amount_reward_trials[flag_amount_all]
     amounts_unique = np.unique(amounts_filtered)
     idx_sort_amount = np.argsort(amounts_filtered)
-    n_trials_amounts = len(flag_amount_all)
+    n_trials_amounts=len(flag_amount_all)
 
     # Raster sorted on reward amount aligned on reward delivery
     for i_trial, trial in enumerate(flag_amount_all[idx_sort_amount]):

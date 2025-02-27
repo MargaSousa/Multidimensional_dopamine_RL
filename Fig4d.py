@@ -57,9 +57,9 @@ dataframe_behavior_times = pd.read_csv(os.path.join(directory_raw_data, "Neurons
 
 # Get 'Neuron id' for photo ided-neurons
 photo_ided_neuron_ids = dataframe_behavior_times.loc[
-    dataframe_behavior_times['Type of neuron'] == 'Photo_ided', 'Neuron id'].drop_duplicates().values
+    dataframe_behavior_times['Is photo ided'] == 1, 'Neuron id'].drop_duplicates().values
 animals = dataframe_behavior_times.loc[
-    dataframe_behavior_times['Type of neuron'] == 'Photo_ided', 'Animal'].drop_duplicates().values
+    dataframe_behavior_times['Is photo ided'] == 1, 'Animal'].drop_duplicates().values
 
 # Get pupil diameter PSTH
 data_frame_pupil_area = pd.read_csv(os.path.join(directory_raw_data, "Pupil_diameter.csv"))
@@ -67,7 +67,7 @@ data_frame_pupil_area = pd.read_csv(os.path.join(directory_raw_data, "Pupil_diam
 # For the reward time Laplace decoder
 n_time = 100
 time = np.linspace(0, 6.5, n_time)
-n_runs_decoder = 1000
+n_runs_decoder = 10 #1000
 alpha_time = 1
 
 # Decode time for variable cue
@@ -123,7 +123,7 @@ for i_animal, animal in enumerate(animals):
     m = data_frame_pupil_area[data_frame_pupil_area['Animal'] == animal]['Time scale (trials)'].values[0]
 
     photo_ided_animal = dataframe_behavior_times.loc[
-        (dataframe_behavior_times['Type of neuron'] == 'Photo_ided') & (dataframe_behavior_times['Animal'] == animal), 'Neuron id'].drop_duplicates().values
+        (dataframe_behavior_times['Is photo ided'] == 1) & (dataframe_behavior_times['Animal'] == animal), 'Neuron id'].drop_duplicates().values
 
     for neuron_id in photo_ided_animal:
 

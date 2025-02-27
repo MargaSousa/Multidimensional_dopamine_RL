@@ -1,4 +1,5 @@
 import os
+import pdb
 
 import matplotlib as mpl
 import matplotlib.pyplot as plt
@@ -49,7 +50,7 @@ directory_parsed_data = os.path.join(directory, "Parsed_data_" + type_neurons)
 
 responses_reward = np.load(
     os.path.join(directory_parsed_data, "responses_reward_different_magnitudes_constant_delay.npy"))
-
+pdb.set_trace()
 # Get estimated tuning for each neuron
 data_frame_neurons_info = pd.read_csv(os.path.join(directory_parsed_data, "dataframe_neurons_info.csv"))
 all_estimated_reversals = data_frame_neurons_info['Reversals'].values

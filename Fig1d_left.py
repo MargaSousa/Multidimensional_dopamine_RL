@@ -22,8 +22,6 @@ mpl.rcParams['lines.linewidth'] = linewidth
 horizontal_size = 1.5
 vertical_size = 1.5
 
-# Directory to save intermediary data
-dir_save_for_plot=r"C:\Users\Margarida\Learning Lab Dropbox\Learning Lab Team Folder\Patlab protocols\data\MS\Data_paper_organized\Figure_1"
 
 # Optimism colors (from Dabney et al, 2020)
 flatui = ["#9B59B6", "#3498DB", "#95A5A6", "#E74C3C", "#34495E", "#2ECC71"]
@@ -44,13 +42,8 @@ for j in range(mesh[0].shape[0]):
 taus = np.ndarray.flatten(mesh[0])
 gammas = np.ndarray.flatten(mesh[1])
 
-plt.scatter(taus, gammas)
-plt.xlabel(r"$\tau$")
-plt.ylabel(r"$\gamma$")
-plt.show()
 
 n_neurons = len(taus)
-
 Value = np.zeros((n_neurons, n_states))
 Value_save = np.zeros((n_trials, n_neurons, n_states))
 
@@ -75,12 +68,7 @@ for trial in range(n_trials):
 
     if trial % 10000 == 0:
         alpha = alpha * 0.9
-plt.imshow(Value, aspect="auto")
-plt.ylabel("Neurons")
-plt.xlabel("Time")
-plt.xticks([0, n_states - 1], ["cue", "reward"])
-plt.colorbar(label="Value")
-plt.show()
+
 
 fig, ax = plt.subplots(figsize=(horizontal_size, vertical_size))
 ax.tick_params(width=linewidth, length=length_ticks)
@@ -97,9 +85,5 @@ plt.xticks([])
 plt.yticks([])
 plt.show()
 
-
-values_cue_reward={"Values at cue corrected for diversity in temporal discount": corrected_values_at_cue, "Values at reward":Value[:, -1]}
-df = pd.DataFrame(values_cue_reward)
-df.to_csv(dir_save_for_plot+r'\Fig1d_values_cue_reward.csv',index=False,header=True, sep=',')
 
 print("time elapsed: {:.2f}s".format(timer.time() - start_time))

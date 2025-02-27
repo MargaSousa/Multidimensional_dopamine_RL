@@ -42,6 +42,7 @@ mpl.rcParams['ytick.labelsize'] = font_size
 mpl.rcParams['lines.linewidth'] = linewidth
 mpl.rc('xtick', labelsize=labelsize)
 mpl.rc('ytick', labelsize=labelsize)
+mpl.use('TkAgg')
 
 # colors for plots
 summer = mpl.cm.get_cmap('Reds', 12)
@@ -53,7 +54,7 @@ colors_delay_lag = winter(np.linspace(0.4, 1, 4))
 directory = "/Users/margaridasousa/Desktop/Data_repository_paper"
 
 # Parsed data directory
-type_neurons = "DA"  # either "DA" or "putative_DA"
+type_neurons = "DA"  # either "DA" or "Putative_DA"
 directory_parsed_data = os.path.join(directory, "Parsed_data_" + type_neurons)
 
 # Get responses aligned to cue delivery
@@ -76,10 +77,11 @@ dataframe_behavior_times = pd.read_csv(os.path.join(directory_raw_data, "Neurons
 # Get neuron id for the selected type of neurons
 if type_neurons == "DA":
     selected_neuron_ids = dataframe_behavior_times.loc[
-        dataframe_behavior_times['Type of neuron'] == 'Photo_ided', 'Neuron id'].drop_duplicates().values
+        dataframe_behavior_times['Is photo ided'] == 1, 'Neuron id'].drop_duplicates().values
 else:
     selected_neuron_ids = dataframe_behavior_times.loc[
         dataframe_behavior_times['Type of neuron'] == 'Putative_DA', 'Neuron id'].drop_duplicates().values
+
 
 # Bins for which licking PSTH was computed
 time_min = 0

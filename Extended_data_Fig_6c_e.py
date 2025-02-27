@@ -91,11 +91,10 @@ time = np.linspace(0, 7.5, n_time)
 cue_times = np.array([0, 1.5, 3, 6])
 alpha_time = 0.15  # Smoothing parameter
 
-# Regression between firing rate at the cue and reversal points
 
 # Decode time for variable cue first phase
 population_responses_variable_second_phase = np.nanmean(responses_cue_bimodal_second_phase,
-                                                        axis=1)  # estimated_reversals*
+                                                        axis=1)
 mean_responses_variable_cue_discount_second_phase = population_responses_variable_second_phase / (
             estimated_reversals * gains)  # Correct for diversity in reward magnitude tuning
 variance_variable = np.nanvar(responses_cue_bimodal_second_phase, axis=1)
@@ -106,7 +105,7 @@ pdf_time_variable = run_decoding_time(time, discount, variance_variable,
 estimate_time_variable_second_phase = np.sum(time * pdf_time_variable)
 population_responses_variable_second_phase = np.nanmean(responses_cue_bimodal_second_phase, axis=1)
 
-# Relationship between firing rate at the cue and reversal points
+# Relationship between firing rate at the cue and reversal points (correct for diversity in reward time tuning)
 population_responses_variable_corrected_second_phase = population_responses_variable_second_phase / (
             gains * discount ** estimate_time_variable_second_phase)
 well_estimated_reversals = np.intersect1d(np.where(estimated_reversals > 1.1)[0],
@@ -281,7 +280,7 @@ for run in range(n_runs_2d_decoder):
     # Decode magnitude for variable cue
     if is_shuffle:
         neurons_shuffled = np.arange(len(estimated_reversals_variable))
-        np.random.shuffle(neurons_shuffled)  # [neurons_shuffled],
+        np.random.shuffle(neurons_shuffled)
         samples, _ = run_decoding_magnitude(estimated_reversals_variable[neurons_shuffled], pred_cue,
                                             np.ones(len(reversal_estimated_at_cue)), minv=1, maxv=8, N=20,
                                             max_samples=2000, max_epochs=15, method='TNC')

@@ -1,5 +1,7 @@
-from aux_functions import *
+import matplotlib.pyplot as plt
 
+from aux_functions import *
+from scipy.stats import gaussian_kde
 
 def get_action(value,  temperature_policy):
     """Output the softmax policy over value with temperature parameter temperature_policy."""
@@ -36,7 +38,6 @@ def do_action_TMRL(action, Value, gammas,taus, end_time_reward, reward, probabil
     reward_trial=0
 
     for t_action in range(end_time_reward[action]):
-        print(reward[action, t_action, :],probability[action, t_action, :])
         rew = np.random.choice(a=reward[action, t_action, :],p=probability[action, t_action, :])
         if t_action < end_time_reward[action] - 1:
 
@@ -99,3 +100,54 @@ def predict_time_all_actions(values, time, U, s, vh, smooth):
     for action in range(n_actions):
         predicted_time[action], probability_time[action, :] = predict_time_reward(values[action, :, 0], time, U, s, vh, smooth)
     return predicted_time, probability_time
+
+
+def run_decoder_magnitude_time(values,gammas,taus,time,reward,alpha):
+    bin_start=15
+    min_reward=np.min(reward)
+    max_reward=np.max(reward)
+    n_time=len(time)
+    n_reward=len(reward)
+    n_neurons=values.shape[0]
+
+    # Construct matrix F for Laplace decoder
+    F = np.zeros((values.shape[1], n_time))
+    for i_t, t in enumerate(time):
+        F[:, i_t] = gammas ** t
+    # Find eigenvectors
+    U, s, vh = np.linalg.svd(F, full_matrices=True)
+    L = np.min([vh.shape[0], np.shape(U)[1]])
+
+
+    # Laplace decoder applied to each column
+    synthetic_delta_fr_time = np.zeros((values.shape[1], n_time))
+
+    for neuron_tau in range(values.shape[1]):
+        for i in range(L):
+            synthetic_delta_fr_time[neuron_tau, :] += (s[i] ** 2 / (s[i] ** 2 + alpha ** 2)) * (np.dot(U[:, i], values[:,neuron_tau]) * vh[i, :]) / s[i]
+
+        negative_pos=np.where(synthetic_delta_fr_time[neuron_tau,:]<0)[0]
+        synthetic_delta_fr_time[neuron_tau,negative_pos]=0
+
+
+    # Correct scale of reward magnitude
+    max_mean_neuron=np.max(synthetic_delta_fr_time)
+    min_mean_neuron=np.min(synthetic_delta_fr_time)
+    synthetic_delta_fr_time=max_reward*(synthetic_delta_fr_time-min_mean_neuron)/(max_mean_neuron-min_mean_neuron)
+
+
+    # Expectile decoder for each column
+    hist = np.zeros((n_reward, n_time))
+    all_samples=[]
+    for bin_time in range(n_time):
+        sampled_dist_synthetic, loss_synthetic = run_decoding_magnitude(synthetic_delta_fr_time[:, bin_time], taus,np.ones(n_neurons), N=20, minv=np.min(synthetic_delta_fr_time),maxv=np.max(synthetic_delta_fr_time), max_samples=100, max_epochs=5,method='TNC')
+        all_samples.append(list(sampled_dist_synthetic))
+        if np.sum(sampled_dist_synthetic) == 0:
+            hist[:, bin_time] = 0
+
+        else:
+            kde = gaussian_kde(sampled_dist_synthetic, bw_method=1)
+            smoothed_pdf= kde.pdf(reward)
+            smoothed_pdf=smoothed_pdf/np.sum(smoothed_pdf)
+            hist[:, bin_time] = smoothed_pdf
+    return hist

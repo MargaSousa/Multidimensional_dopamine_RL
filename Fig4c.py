@@ -17,25 +17,23 @@ mpl.use('TkAgg')
 # linewidth=4
 # scatter_size=500
 
-horizontal_size = 2.4
-vertical_size = 2.4
 length_ticks = 2
 linewidth = 1.2
 scatter_size = 4
 font_size = 11
-horizontal_size = 10
-vertical_size = 10
+
 labelpad_x = 10
 labelpad_y = -10
 labelsize = font_size
 legendsize = font_size
 
+
 mpl.rcParams['axes.spines.right'] = False
 mpl.rcParams['axes.spines.top'] = False
 mpl.rcParams.update({'font.size': font_size})
 mpl.rcParams['lines.linewidth'] = linewidth
-mpl.rcParams['xtick.labelsize'] = font_size
-mpl.rcParams['ytick.labelsize'] = font_size
+mpl.rcParams['xtick.labelsize'] = font_size-3
+mpl.rcParams['ytick.labelsize'] = font_size-3
 mpl.rcParams['lines.linewidth'] = linewidth
 
 # Where folder is saved
@@ -43,14 +41,14 @@ directory = "/Users/margaridasousa/Desktop/Data_repository_paper"
 directory_raw_data = os.path.join(directory, "Raw")
 
 # Get pupil diameter PSTH
-data_frame_pupil_area = pd.read_csv(os.path.join(directory_raw_data, "Pupil_diameter.csv"))
-data_frame_pupil_area.Animal = data_frame_pupil_area.Animal.astype(str)
-data_frame_pupil_area.Session = data_frame_pupil_area.Session.astype(str)
-data_frame_pupil_area["PSTH_pupil_diameter_aligned_to_cue"] = data_frame_pupil_area.loc[:,
+data_frame_pupil_diameter = pd.read_csv(os.path.join(directory_raw_data, "Pupil_diameter.csv"))
+data_frame_pupil_diameter.Animal = data_frame_pupil_diameter.Animal.astype(str)
+data_frame_pupil_diameter.Session = data_frame_pupil_diameter.Session.astype(str)
+data_frame_pupil_diameter["PSTH_pupil_diameter_aligned_to_cue"] = data_frame_pupil_diameter.loc[:,
                                                               'PSTH pupil diameter bin 0':'PSTH pupil diameter bin 1559'].values.tolist()
-animals = np.unique(data_frame_pupil_area['Animal'])
-data_frame_pupil_area.Animal = data_frame_pupil_area.Animal.astype(str)
-data_frame_pupil_area.Session = data_frame_pupil_area.Session.astype(str)
+animals = np.unique(data_frame_pupil_diameter['Animal'])
+data_frame_pupil_diameter.Animal = data_frame_pupil_diameter.Animal.astype(str)
+data_frame_pupil_diameter.Session = data_frame_pupil_diameter.Session.astype(str)
 
 n_quantiles = 3
 taus_quantiles = np.arange(0, n_quantiles + 1) / n_quantiles
@@ -78,9 +76,11 @@ psth_all_animals = np.empty((6, n_quantiles, n_frames_pupil))
 psth_all_animals[:, :] = np.nan
 
 # Figure with pupil diameter PSTH for each mouse
-fig_psth_all_animals, ax_psth_all_animals = plt.subplots(figsize=(horizontal_size, vertical_size * 2.75), nrows=6,
+horizontal_size = 1
+vertical_size = 4.3#vertical_size * 2.75
+fig_psth_all_animals, ax_psth_all_animals = plt.subplots(figsize=(horizontal_size, vertical_size), nrows=6,
                                                          ncols=1, sharex=True)
-ax_psth_all_animals[0].set_ylabel("Pupil diameter\nchange (" + r"$\frac{\Delta P}{P_0}$" + ")")
+ax_psth_all_animals[0].set_ylabel("Pupil diameter change (" + r"$\frac{\Delta P}{P_0}$" + ")")
 ax_psth_all_animals[0].set_yticks([0, 0.05, 0.1])
 
 # Reward history vs mean pupil diameter plot
@@ -97,10 +97,13 @@ sum_max_psth = 0
 ticks_axis_position = [0]
 ticks_axis_value = [0]
 
+
+
 for i_animal, animal in enumerate(["4096", "4418", "4099", "3353", "4098", "4140"]):
 
+
     # Get individual animal time-scale to integrate reward
-    m = data_frame_pupil_area[data_frame_pupil_area['Animal'] == animal]['Time scale (trials)'].values[0]
+    m = data_frame_pupil_diameter[data_frame_pupil_diameter['Animal'] == animal]['Time scale (trials)'].values[0]
 
     prev_session = -1
     i_session = 0
@@ -114,7 +117,7 @@ for i_animal, animal in enumerate(["4096", "4418", "4099", "3353", "4098", "4140
     counts_trials = 0
 
     ax_psth_all_animals[i_animal].axvline(x=0, color="k", ls="--")
-    ax_psth_all_animals[i_animal].axvline(x=3, color="k", ls="--")
+    #ax_psth_all_animals[i_animal].axvline(x=3, color="k", ls="--")
     ax_psth_all_animals[i_animal].tick_params(width=linewidth, length=length_ticks)
     ax_psth_all_animals[i_animal].spines['left'].set_linewidth(linewidth)
     ax_psth_all_animals[i_animal].spines['bottom'].set_linewidth(linewidth)
@@ -127,28 +130,28 @@ for i_animal, animal in enumerate(["4096", "4418", "4099", "3353", "4098", "4140
         ax_psth_all_animals[i_animal].tick_params(axis='x', width=0, length=0)
 
     # Go through sessions
-    for date in np.unique(data_frame_pupil_area[(data_frame_pupil_area.Animal == animal)]["Session"].values):
+    for date in np.unique(data_frame_pupil_diameter[(data_frame_pupil_diameter.Animal == animal)]["Session"].values):
 
-        if len(data_frame_pupil_area[
-                   (data_frame_pupil_area.Animal == animal) & (data_frame_pupil_area.Session == date)][
+        if len(data_frame_pupil_diameter[
+                   (data_frame_pupil_diameter.Animal == animal) & (data_frame_pupil_diameter.Session == date)][
                    "PSTH_pupil_diameter_aligned_to_cue"].values) == 0:
             continue
 
-        data_frame_pupil_area_session = data_frame_pupil_area[
-            (data_frame_pupil_area.Animal == animal) & (data_frame_pupil_area.Session == date)]
+        data_frame_pupil_diameter_session = data_frame_pupil_diameter[
+            (data_frame_pupil_diameter.Animal == animal) & (data_frame_pupil_diameter.Session == date)]
 
         # Variable reward magnitude trials
-        variable_amount_trials = np.intersect1d(np.where(data_frame_pupil_area_session["Is rewarded"] == 1)[0],
-                                                np.where(data_frame_pupil_area_session["Distribution reward ID"] == 2)[
+        variable_amount_trials = np.intersect1d(np.where(data_frame_pupil_diameter_session["Is rewarded"] == 1)[0],
+                                                np.where(data_frame_pupil_diameter_session["Distribution reward ID"] == 2)[
                                                     0])
 
-        reward_amounts = data_frame_pupil_area_session["Amount reward"].values
+        reward_amounts = data_frame_pupil_diameter_session["Amount reward"].values
         reward_amounts = reward_amounts[variable_amount_trials]
         unique_reward_amounts = np.unique(reward_amounts)
 
         # Reward history
         moving_average_amounts = moving_average(reward_amounts, m, 1, kerneltype)
-        psth_pupil_session = data_frame_pupil_area_session["PSTH_pupil_diameter_aligned_to_cue"].tolist()
+        psth_pupil_session = data_frame_pupil_diameter_session["PSTH_pupil_diameter_aligned_to_cue"].tolist()
         psth_pupil_session = np.array(psth_pupil_session)
 
         max_trial_number = len(variable_amount_trials) - 1  # Take out last trial
@@ -216,4 +219,7 @@ for i_animal, animal in enumerate(["4096", "4418", "4099", "3353", "4098", "4140
     y_example = reg.predict(x_example.reshape(-1, 1))
     ax_summary.plot(x_example, y_example, color="k")
 
+    #ax_psth_all_animals[i_animal].set_title(animal)
+
+#fig_psth_all_animals.savefig("psth_all_animals.svg")
 plt.show()

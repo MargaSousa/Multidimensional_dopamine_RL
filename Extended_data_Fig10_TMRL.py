@@ -1,6 +1,5 @@
 import pdb
 import time as timer
-
 import matplotlib.pyplot as plt
 import numpy as np
 import scipy.signal
@@ -29,12 +28,8 @@ mpl.rcParams['axes.titlesize'] = font_size - 2
 mpl.rcParams['legend.fontsize'] = font_size - 2
 mpl.use("TkAgg")
 
-# Where environment and task features are saved
-main_dir=r"C:\Users\Margarida\Learning Lab Dropbox\Learning Lab Team Folder\Patlab protocols\data\MS\Data_paper_organized\Simulations"
-
-
 # Environment
-dict_environment = np.load(os.path.join(main_dir,"environment.npy"), allow_pickle=True)
+dict_environment = np.load("environment.npy", allow_pickle=True)
 dict_environment = dict_environment.item()
 n_actions = dict_environment["n_actions"]  # number of patches
 reward_magnitude = dict_environment["reward_magnitude"]
@@ -45,8 +40,8 @@ end_time_reward = dict_environment["end_time_reward"]
 
 
 n_unique = 150 # Number of unique values for taus and gammas
-unique_taus = np.linspace(1.0 / n_unique, 1.0 , n_unique)
-unique_gammas = np.linspace(1.0/n_unique, 1, n_unique)
+unique_taus = np.linspace(1.0 / n_unique, 1.0 , n_unique) # taus (optimism level)
+unique_gammas = np.linspace(1.0/n_unique, 1, n_unique) # temporal discount factor
 mesh = np.meshgrid(unique_taus, unique_gammas)
 
 taus = np.ndarray.flatten(mesh[0])
@@ -55,7 +50,7 @@ n_neurons = taus.shape[0]
 
 
 alpha = 0.02 # Learning rate
-n_runs = 10 # Number of runs
+n_runs = 3 # Number of runs
 scale_time=0.5
 number_states=11.0/scale_time
 time = np.arange(0, 12, scale_time)
@@ -84,20 +79,20 @@ for patch in range(n_actions):
 
 
 algo="TMRL"
-task="sated_hungry"#"hungry_dusk_dawn","dusk_dawn"
-task_dictionary=np.load(os.path.join(main_dir,algo+"_"+task+".npy",allow_pickle=True))
+task="sated_hungry" #"sated_hungry", "hungry_dusk_dawn" or "dusk_dawn"
+task_dictionary=np.load(algo+"_"+task+".npy",allow_pickle=True)
 task_dictionary = task_dictionary.item()
-n_trials=task_dictionary["n_trials"]#+5000+3000
-trial_state_change=task_dictionary["trial_state_change"]#+2000
-temperature_policy = 0.5 #task_dictionary["temperature_policy"] #0.6 for dusk dawn
+n_trials=task_dictionary["n_trials"]
+trial_state_change=task_dictionary["trial_state_change"]
+temperature_policy = 0.5 #this parameter is not really being used, we are using a random policy
 utility_power_before=task_dictionary["utility_power_before"]
 utility_power_after=task_dictionary["utility_power_after"]
 gamma_before=task_dictionary["gamma_before"]
 gamma_after=task_dictionary["gamma_after"]
-alpha_decoder=0.00000001
+alpha_decoder=0.00000001 # smoothing parameter for decoding future reward time
 
-print(task_dictionary)
 
+# Neuron that is used to select action
 reference_neuron_before = np.intersect1d(np.where(np.round(gammas,2)==gamma_before)[0],np.where(np.round(taus,3)==0.5)[0])[0]
 reference_neuron_after = np.intersect1d(np.where(np.round(gammas,2)>=gamma_after)[0],np.where(np.round(taus,3)==0.5)[0])[0]
 
@@ -138,27 +133,24 @@ for r in range(n_runs):
         else:
             if is_recompute:
                 for patch in range(n_actions):
-                    # Hungry state ( convex utility function )
-                    rew_decoder = np.linspace(np.min(reward[patch, :]*utility_power_before), np.max(reward[patch, :]**utility_power_before),120)
+
+                    rew_decoder = np.linspace(np.min(reward[patch, :]**utility_power_before), np.max(reward[patch, :]**utility_power_before),120)
 
                     values_cue_sorted = np.reshape(values[patch, :, 0], (n_unique, n_unique))
 
                     # Decode joint probability distribution over time and magnitude
                     joint_pdf = run_decoder_magnitude_time(values_cue_sorted, unique_gammas, unique_taus, time,rew_decoder, alpha_decoder)  # np.max(reward_magnitude)
 
-                    #plt.imshow(joint_pdf,aspect="auto",extent=[time[0],time[-1],rew_decoder[-1],rew_decoder[0]])
-                    #plt.show()
-
                     # Normalize for each time
                     joint_pdf = joint_pdf / np.sum(joint_pdf, axis=0).reshape(1, -1)
 
+
                     # Mean of bins
-                    amount_decode=np.copy(rew_decoder**utility_power_after)
+                    amount_decode=np.copy(rew_decoder**(utility_power_after/utility_power_before))
                     amount_decode[1:-1]=(amount_decode[1:-1]+amount_decode[2:])/2
                     amount = np.repeat((amount_decode).reshape(-1, 1), joint_pdf.shape[1], axis=1)
 
-
-                    # Compute expected value over time, reference neuron is using the mean to decide what action to select
+                    # Compute expected value over time
                     expected_over_time = np.sum(amount * joint_pdf, axis=0)
 
                     # Recompute reference value
@@ -174,37 +166,16 @@ for r in range(n_runs):
 
             values, reward_trial = do_action_TMRL(action, values, gammas, taus, end_bin_reward, reward**utility_power_after, probability, alpha, scale_time, n_unique,gamma_after,True)
             value_save[r,trial_number,:]=values[:, reference_neuron_after, 0]
+
         sum_reward_tmrl+= reward_trial
-
-        if trial_number == trial_state_change:
-            action_after_change_state[r] = action#np.argmax(value)
-            utility_after_change_state[r]=reward_trial
-            print("reward trial ",reward_trial)
-            print("values ",values[:, reference_neuron_after, 0])
-            print("policy ",policy)
-            print("action ",action)
-
-        if trial_number>trial_state_change and trial_number<trial_state_change+500:
-            sum_rewards[r,trial_number-trial_state_change]=sum_reward_tmrl
-
         track_reward.append(sum_reward_tmrl)
         track_policy.append(policy)
         trial_number+=1
 
     track_policy=np.asarray(track_policy)
     tmrl_prob_actions[r, :, :]=track_policy
-    # for patch in range(n_actions):
-    #     plt.plot(trials_reference-trial_state_change,value_save[r,:,patch])
-    # plt.xlim(-200,3000)
-    # plt.show()
-
-# Save
-# np.save("trials_reference_"+algo+"_"+task+".npy",trials_reference-trial_state_change)
-# np.save("sum_rewards_"+algo+"_"+task+".npy",sum_rewards)
-# np.save("foraging_policy_runs_"+algo+"_"+task+".npy",tmrl_prob_actions)
-# np.save("foraging_value_runs_"+algo+"_"+task+".npy",value_save)
-# np.save("p_optimal_action_"+algo+"_"+task+".npy",action_after_change_state)
-# np.save("utility_"+algo+"_"+task+".npy",utility_after_change_state)
-
-
+    for patch in range(n_actions):
+        plt.plot(trials_reference-trial_state_change,value_save[r,:,patch])
+    plt.xlim(-200,3000)
+    plt.show()
 

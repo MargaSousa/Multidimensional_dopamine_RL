@@ -36,7 +36,7 @@ mpl.use('TkAgg')
 directory = "/Users/margaridasousa/Desktop/Data_repository_paper"
 
 # Parsed data directory
-type_neurons = "DA"  # either "DA" or "putative_DA"
+type_neurons = "DA"  # either "DA" or "Putative_DA"
 directory_parsed_data = os.path.join(directory, "Parsed_data_" + type_neurons)
 
 # Get estimated tuning for reward time
@@ -102,7 +102,7 @@ plt.yticks([1], ["1"])
 plt.show()
 
 # Variability: estimate temporal discount factors in different sets of trials (cross-validation)
-n_resamples = 10000
+n_resamples = 100 #10000
 median_neurons = []
 quantile_lower = []
 quantile_upper = []

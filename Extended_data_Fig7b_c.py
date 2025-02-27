@@ -104,7 +104,7 @@ def quadratic_function(x, a, b, c):
     return a + b * (x - c) ** 2
 
 
-fig, ax = plt.subplots(figsize=(horizontal_size, vertical_size))  #
+fig, ax = plt.subplots(figsize=(horizontal_size, vertical_size))
 ax.spines['left'].set_linewidth(linewidth)
 ax.spines['bottom'].set_linewidth(linewidth)
 ax.tick_params(width=linewidth, length=length_ticks)
