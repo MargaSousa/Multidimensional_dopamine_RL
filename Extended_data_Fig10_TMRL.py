@@ -50,7 +50,7 @@ n_neurons = taus.shape[0]
 
 
 alpha = 0.02 # Learning rate
-n_runs = 3 # Number of runs
+n_runs = 5 # Number of runs
 scale_time=0.5
 number_states=11.0/scale_time
 time = np.arange(0, 12, scale_time)
@@ -77,7 +77,6 @@ for patch in range(n_actions):
     probability[patch, end_bin_reward[patch]:, :] = [1, 0]
 
 
-
 algo="TMRL"
 task="sated_hungry" #"sated_hungry", "hungry_dusk_dawn" or "dusk_dawn"
 task_dictionary=np.load(algo+"_"+task+".npy",allow_pickle=True)
@@ -89,8 +88,8 @@ utility_power_before=task_dictionary["utility_power_before"]
 utility_power_after=task_dictionary["utility_power_after"]
 gamma_before=task_dictionary["gamma_before"]
 gamma_after=task_dictionary["gamma_after"]
-alpha_decoder=0.00000001 # smoothing parameter for decoding future reward time
-
+alpha_decoder_time=0.00000001 # smoothing parameter for decoding future reward time
+smooth_magnitude=0.01 # smoothing parameter for decoding reward magnitude
 
 # Neuron that is used to select action
 reference_neuron_before = np.intersect1d(np.where(np.round(gammas,2)==gamma_before)[0],np.where(np.round(taus,3)==0.5)[0])[0]
@@ -109,9 +108,9 @@ utility_after_change_state[:]=np.nan
 value_save= np.empty((n_runs,n_trials,n_actions))
 value_save[:,:]=np.nan
 
-
-
 for r in range(n_runs):
+
+    print(r)
 
     values = np.zeros((n_actions, n_neurons, N_time))
     sum_reward_tmrl = 0
@@ -134,16 +133,16 @@ for r in range(n_runs):
             if is_recompute:
                 for patch in range(n_actions):
 
+                    #patch=1
+
                     rew_decoder = np.linspace(np.min(reward[patch, :]**utility_power_before), np.max(reward[patch, :]**utility_power_before),120)
 
                     values_cue_sorted = np.reshape(values[patch, :, 0], (n_unique, n_unique))
 
                     # Decode joint probability distribution over time and magnitude
-                    joint_pdf = run_decoder_magnitude_time(values_cue_sorted, unique_gammas, unique_taus, time,rew_decoder, alpha_decoder)  # np.max(reward_magnitude)
-
+                    joint_pdf = run_decoder_magnitude_time(values_cue_sorted, unique_gammas, unique_taus, time, rew_decoder, alpha_decoder_time,smooth_magnitude)  # np.max(reward_magnitude)
                     # Normalize for each time
                     joint_pdf = joint_pdf / np.sum(joint_pdf, axis=0).reshape(1, -1)
-
 
                     # Mean of bins
                     amount_decode=np.copy(rew_decoder**(utility_power_after/utility_power_before))
@@ -152,6 +151,8 @@ for r in range(n_runs):
 
                     # Compute expected value over time
                     expected_over_time = np.sum(amount * joint_pdf, axis=0)
+
+                    print(expected_over_time)
 
                     # Recompute reference value
                     for i_t, t in enumerate(time):
@@ -174,8 +175,13 @@ for r in range(n_runs):
 
     track_policy=np.asarray(track_policy)
     tmrl_prob_actions[r, :, :]=track_policy
-    for patch in range(n_actions):
-        plt.plot(trials_reference-trial_state_change,value_save[r,:,patch])
-    plt.xlim(-200,3000)
-    plt.show()
+
+colors_patches=["#7570b3","#d95f02","firebrick"]
+for patch in range(n_actions):
+    mean=np.nanmean(value_save[:,:,patch],axis=0)
+    std=np.nanstd(value_save[:,:,patch],axis=0)
+    plt.plot(trials_reference-trial_state_change,mean,color=colors_patches[patch])
+    plt.fill_between(trials_reference-trial_state_change,mean-std,mean+std,alpha=0.1,color=colors_patches[patch])
+plt.xlim(-200,3000)
+plt.show()
 

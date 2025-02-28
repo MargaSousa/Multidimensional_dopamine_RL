@@ -62,11 +62,11 @@ responses_cue[:, :, :] = np.nan
 responses_cue_after = np.empty((n_neurons, 3, 50))
 responses_cue_after[:, :, :] = np.nan
 
-# Arrays to store responses certain cue for variable delays (baseline corrected)
+# Arrays to store reward responses for cues predicting certain reward magnitudes at variable delays (baseline corrected)
 responses_reward_all = np.empty((n_neurons, 4, 70))
 responses_reward_all[:, :, :] = np.nan
 
-# Arrays to store responses certain cue for variable delays (baseline corrected)
+# Arrays to store reward responses for cues predicting certain reward magnitudes at variable delays (not baseline corrected)
 responses_reward_all_not_baseline_corrected = np.empty((n_neurons, 4, 70))
 responses_reward_all_not_baseline_corrected[:, :, :] = np.nan
 
@@ -143,7 +143,7 @@ for animal in [3353, 4098, 4099, 4096, 4140, 4418]:
         amount_reward_trials = dataframe_behavior_times[dataframe_behavior_times['Neuron id'] == neuron_id][
             'Amount reward'].values
 
-        # Amount of reward for each trial
+        # Reward delay for each trial
         delay_reward_trials = dataframe_behavior_times[dataframe_behavior_times['Neuron id'] == neuron_id][
             'Delay reward'].values
 
@@ -163,7 +163,7 @@ for animal in [3353, 4098, 4099, 4096, 4140, 4418]:
 
         n_trials = len(delta_fr_cue)
 
-        # Which delay was removed?
+        # Which delay was removed at the end of the session?
         is_take_long_neuron = dataframe_behavior_neuron['Is take long'].unique()[0]
         is_take_long.append(is_take_long_neuron)
 
@@ -313,7 +313,6 @@ df = pd.DataFrame(info_neurons, columns=column_names)
 
 # Directory where to solve parsed data
 dir_save="/Users/margaridasousa/Desktop/Data_repository_paper/Parsed_data_putative_DA"
-
 
 #df.to_csv(dir_save+r'/dataframe_neurons_info.csv',index=False,header=True, sep=',')
 

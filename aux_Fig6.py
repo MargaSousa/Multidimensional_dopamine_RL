@@ -81,28 +81,12 @@ def do_action_sr(action, sr, expected_reward, gamma,end_time_reward, reward, pro
     return sr, expected_reward, reward_episode
 
 
-def predict_time_reward(Value, time, U, s, vh, smooth):
-    """Given a value at the cue Value and a smoothing parameter alpha, predict the expected rewards over time."""
-    N_time = time.shape[0]
-    p = np.zeros(N_time)
-    L = np.shape(U)[1]
-    for i in range(L):
-        p += (s[i] ** 2) / ((s[i] ** 2) + (smooth ** 2)) * (np.dot(U[:, i], Value) * vh[i, :] / s[i])
-    pos_max = np.argmax(p)
-    return time[pos_max], p
 
+def run_decoder_magnitude_time(values,gammas,taus,time,reward,alpha,smooth_magnitude):
+    """Given a values at the cue, with temporal discount factors gammas and optimism levels taus,
+    decode the joint distribution over reward magnitudes and times. alpha is the smoothing parameter
+    for the time decoder, smooth_magnitude for the magnitude decoder."""
 
-def predict_time_all_actions(values, time, U, s, vh, smooth):
-    n_actions = values.shape[0]
-    N_time = values.shape[2]
-    predicted_time = np.zeros(n_actions)
-    probability_time = np.zeros((n_actions, N_time))
-    for action in range(n_actions):
-        predicted_time[action], probability_time[action, :] = predict_time_reward(values[action, :, 0], time, U, s, vh, smooth)
-    return predicted_time, probability_time
-
-
-def run_decoder_magnitude_time(values,gammas,taus,time,reward,alpha):
     bin_start=15
     min_reward=np.min(reward)
     max_reward=np.max(reward)
@@ -146,8 +130,9 @@ def run_decoder_magnitude_time(values,gammas,taus,time,reward,alpha):
             hist[:, bin_time] = 0
 
         else:
-            kde = gaussian_kde(sampled_dist_synthetic, bw_method=1)
+            kde = gaussian_kde(sampled_dist_synthetic, bw_method=smooth_magnitude)
             smoothed_pdf= kde.pdf(reward)
             smoothed_pdf=smoothed_pdf/np.sum(smoothed_pdf)
             hist[:, bin_time] = smoothed_pdf
+
     return hist
