@@ -176,17 +176,17 @@ for i_bin,bin in enumerate(bins_cue):
     to_save_info[str(np.round(bin,4))+"s relative to cue"]=X_auROC[leaves,i_bin]
 
 n_bins_cue=len(bins_cue)
-for i_bin,bin in enumerate(bins_reward):
-    to_save_info[str(np.round(bin,4)) + "s relative to reward"] = X_auROC[leaves, n_bins_cue+i_bin]
-df = pd.DataFrame(to_save_info)
-df.to_csv(r'\Extended_data_Fig2a.csv', index=False, header=True,sep=',')
+# for i_bin,bin in enumerate(bins_reward):
+#     to_save_info[str(np.round(bin,4)) + "s relative to reward"] = X_auROC[leaves, n_bins_cue+i_bin]
+#df = pd.DataFrame(to_save_info)
+#df.to_csv(r'\Extended_data_Fig2a.csv', index=False, header=True,sep=',')
 
 # Save PCA for each neuron
-to_save_info = {"Neuron": np.arange(neurons_pc_space.shape[0])}
-for i_pca in range(n_pcs):
-    to_save_info["PC "+str(i_pca+1)]=neurons_pc_space[leaves,i_pca]
-df = pd.DataFrame(to_save_info)
-df.to_csv('\Extended_data_Fig2b.csv', index=False, header=True,sep=',')
+# to_save_info = {"Neuron": np.arange(neurons_pc_space.shape[0])}
+# for i_pca in range(n_pcs):
+#     to_save_info["PC "+str(i_pca+1)]=neurons_pc_space[leaves,i_pca]
+# df = pd.DataFrame(to_save_info)
+# df.to_csv('\Extended_data_Fig2b.csv', index=False, header=True,sep=',')
 
 
 # Plot photo ided neurons
@@ -268,7 +268,8 @@ for neuron_type in neuron_types:
 
     # PSTH aligned to cue for different delays
     for i_delay, delay in enumerate(delays):
-        psth = np.array(df_cue[df_cue['Delay reward'] == delay]['PSTH cue'].tolist())
+        psth=(df_cue[df_cue['Delay reward'] == delay].groupby('Neuron id')['PSTH cue'].apply(lambda x: np.mean(np.vstack(x), axis=0)).to_numpy())
+        psth=np.stack(psth)
         psth_mean = np.mean(psth, axis=0)
         psth_sem = scipy.stats.sem(psth, axis=0, nan_policy='omit').astype(float)
         plt.plot(axes_correct, psth_mean, color=colors_delay[i_delay])
@@ -288,7 +289,8 @@ for neuron_type in neuron_types:
 
     # PSTH aligned to reward for different amounts
     for i_amount, amount in enumerate(amounts):
-        psth = np.array(df_reward[df_reward['Amount reward'] == amount]['PSTH reward'].tolist())
+        psth=(df_reward[df_reward['Amount reward'] == amount].groupby('Neuron id')['PSTH reward'].apply(lambda x: np.mean(np.vstack(x), axis=0)).to_numpy())
+        psth=np.stack(psth)
         psth_mean = np.mean(psth, axis=0)
         psth_sem = scipy.stats.sem(psth, axis=0, nan_policy='omit').astype(float)
         plt.plot(axes_correct, psth_mean, color=colors_amount[i_amount])
