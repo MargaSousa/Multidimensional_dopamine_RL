@@ -13,7 +13,7 @@ To generate each figure, update the `directory` and the `type_neurons` (DA or Pu
 
 The script _Parse_data_neurons.py_ processes raw data of the public repository (saved in `directory`) and outputs the estimated tuning parameters for reward magnitude and time, as well as the mean responses over the selected time windows aligned to cue (time_init_cue and time_end_cue) and reward (time_init_reward and time_end_reward) for all neurons of the chosen type (DA or Putative_DA) and saves it in `directory_save`.
 
-All scripts except Extended_data_Fig10 take less than  10 seconds on a MacBook Pro M2 with 8GB of RAM (macOS 13.0). Extended_data_Fig10 scripts take 20 minute to run. 
+All scripts except Extended_data_Fig10 take less than  10 seconds on a MacBook Pro M2 with 8GB of RAM (macOS 13.0). Extended_data_Fig10 scripts take 20 minuteS to run. 
 
 
 
